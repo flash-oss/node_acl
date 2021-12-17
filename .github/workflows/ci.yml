@@ -74,7 +74,7 @@ jobs:
 
       - run: npm install
 
-      - run: npm run test_mongo
+      - run: npm run test_mongo && npm i mongodb@3 && npm run test_mongo
         env:
           CI: true
 
@@ -101,6 +101,6 @@ jobs:
 
       - run: npm install
 
-      - run: npm run test_mongo_single
+      - run: npm run test_mongo_single && npm i mongodb@3 && npm run test_mongo_single
         env:
           CI: true
