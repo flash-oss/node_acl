@@ -74,9 +74,10 @@ jobs:
 
       - run: npm install
 
-      - run: npm run test_mongo && npm i mongodb@3 && npm run test_mongo
-        env:
-          CI: true
+      - run: npm install mongodb@4
+      - run: npm run test_mongo
+      - run: npm install mongodb@3
+      - run: npm run test_mongo
 
   test_mongo_single:
     name: Node ${{ matrix.node }}, MongoDB ${{ matrix.mongodb-version }}. Single collection
@@ -101,6 +102,7 @@ jobs:
 
       - run: npm install
 
-      - run: npm run test_mongo_single && npm i mongodb@3 && npm run test_mongo_single
-        env:
-          CI: true
+      - run: npm install mongodb@4
+      - run: npm run test_mongo_single
+      - run: npm install mongodb@3
+      - run: npm run test_mongo_single
