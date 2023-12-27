@@ -180,11 +180,10 @@ acl.allow([
 You can check if a user has permissions to access a given resource with _isAllowed_:
 
 ```javascript
-acl.isAllowed("joed", "blogs", "view", function (err, res) {
-  if (res) {
+const res = await acl.isAllowed("joed", "blogs", "view");
+if (res) {
     console.log("User joed is allowed to view blogs");
-  }
-});
+}
 ```
 
 Of course arrays are also accepted in this function:
@@ -198,13 +197,8 @@ Note that all permissions must be fulfilled in order to get _true_.
 Sometimes is necessary to know what permissions a given user has over certain resources:
 
 ```javascript
-acl.allowedPermissions(
-  "james",
-  ["blogs", "forums"],
-  function (err, permissions) {
-    console.log(permissions);
-  }
-);
+const permissions = await acl.allowedPermissions("james", ["blogs", "forums"]);
+console.log(permissions);
 ```
 
 It will return an array of resource:[permissions] like this:
@@ -250,7 +244,7 @@ app.put('/blogs/:id/comments/:commentId', acl.middleware(3, 'joed', 'post'), fun
 
 <a name="addUserRoles"/>
 
-### addUserRoles( userId, roles, function(err) )
+### addUserRoles( userId, roles )
 
 Adds roles to a given user id.
 
@@ -259,7 +253,6 @@ Adds roles to a given user id.
 ```javascript
     userId   {String|Number} User id.
     roles    {String|Array} Role(s) to add to the user id.
-    callback {Function} Callback called when finished.
 ```
 
 ---
@@ -282,7 +275,7 @@ Remove roles from a given user.
 
 <a name="userRoles" />
 
-### userRoles( userId, function(err, roles) )
+### userRoles( userId )
 
 Return all the roles from a given user.
 
@@ -290,7 +283,6 @@ Return all the roles from a given user.
 
 ```javascript
     userId   {String|Number} User id.
-    callback {Function} Callback called when finished.
 ```
 
 ---
@@ -312,7 +304,7 @@ Return all users who has a given role.
 
 <a name="hasRole" />
 
-### hasRole( userId, rolename, function(err, hasRole) )
+### hasRole( userId, rolename )
 
 Return boolean whether user has the role
 
@@ -321,14 +313,13 @@ Return boolean whether user has the role
 ```javascript
     userId   {String|Number} User id.
     rolename {String|Number} role name.
-    callback {Function} Callback called when finished.
 ```
 
 ---
 
 <a name="addRoleParents" />
 
-### addRoleParents( role, parents, function(err) )
+### addRoleParents( role, parents )
 
 Adds a parent or parent list to role.
 
@@ -337,14 +328,13 @@ Adds a parent or parent list to role.
 ```javascript
     role     {String} Child role.
     parents  {String|Array} Parent role(s) to be added.
-    callback {Function} Callback called when finished.
 ```
 
 ---
 
 <a name="removeRoleParents" />
 
-### removeRoleParents( role, parents, function(err) )
+### removeRoleParents( role, parents )
 
 Removes a parent or parent list from role.
 
@@ -355,14 +345,13 @@ If `parents` is not specified, removes all parents.
 ```javascript
     role     {String} Child role.
     parents  {String|Array} Parent role(s) to be removed [optional].
-    callback {Function} Callback called when finished [optional].
 ```
 
 ---
 
 <a name="removeRole" />
 
-### removeRole( role, function(err) )
+### removeRole( role )
 
 Removes a role from the system.
 
@@ -370,14 +359,13 @@ Removes a role from the system.
 
 ```javascript
     role     {String} Role to be removed
-    callback {Function} Callback called when finished.
 ```
 
 ---
 
 <a name="removeResource" />
 
-### removeResource( resource, function(err) )
+### removeResource( resource )
 
 Removes a resource from the system
 
@@ -385,14 +373,13 @@ Removes a resource from the system
 
 ```javascript
     resource {String} Resource to be removed
-    callback {Function} Callback called when finished.
 ```
 
 ---
 
 <a name="allow" />
 
-### allow( roles, resources, permissions, function(err) )
+### allow( roles, resources, permissions )
 
 Adds the given permissions to the given roles over the given resources.
 
@@ -402,25 +389,22 @@ Adds the given permissions to the given roles over the given resources.
     roles       {String|Array} role(s) to add permissions to.
     resources   {String|Array} resource(s) to add permisisons to.
     permissions {String|Array} permission(s) to add to the roles over the resources.
-    callback    {Function} Callback called when finished.
 ```
 
-### allow( permissionsArray, function(err) )
+### allow( permissionsArray )
 
 **Arguments**
 
 ```javascript
     permissionsArray {Array} Array with objects expressing what permissions to give.
        [{roles:{String|Array}, allows:[{resources:{String|Array}, permissions:{String|Array}]]
-
-    callback         {Function} Callback called when finished.
 ```
 
 ---
 
 <a name="removeAllow" />
 
-### removeAllow( role, resources, permissions, function(err) )
+### removeAllow( role, resources )
 
 Remove permissions from the given roles owned by the given role.
 
@@ -432,14 +416,13 @@ Note: we loose atomicity when removing empty role_resources.
     role        {String}
     resources   {String|Array}
     permissions {String|Array}
-    callback    {Function}
 ```
 
 ---
 
 <a name="allowedPermissions" />
 
-### allowedPermissions( userId, resources, function(err, obj) )
+### allowedPermissions( userId, resources )
 
 Returns all the allowable permissions a given user have to
 access the given resources.
@@ -452,14 +435,13 @@ resource name to a list of permissions for that resource.
 ```javascript
     userId    {String|Number} User id.
     resources {String|Array} resource(s) to ask permissions for.
-    callback  {Function} Callback called when finished.
 ```
 
 ---
 
 <a name="isAllowed" />
 
-### isAllowed( userId, resource, permissions, function(err, allowed) )
+### isAllowed( userId, resource, permissions )
 
 Checks if the given user is allowed to access the resource for the given
 permissions (note: it must fulfill all the permissions).
@@ -470,7 +452,6 @@ permissions (note: it must fulfill all the permissions).
     userId      {String|Number} User id.
     resource    {String} resource to ask permissions for.
     permissions {String|Array} asked permissions.
-    callback    {Function} Callback called with the result.
 ```
 
 ---
@@ -494,7 +475,7 @@ Returns true if any of the given roles have the right permissions.
 
 <a name="whatResources" />
 
-### whatResources(role, function(err, {resourceName: [permissions]})
+### whatResources(role) : {resourceName: [permissions]}
 
 Returns what resources a given role has permissions over.
 
@@ -502,10 +483,9 @@ Returns what resources a given role has permissions over.
 
 ```javascript
     role        {String|Array} Roles
-    callback    {Function} Callback called with the result.
 ```
 
-whatResources(role, permissions, function(err, resources) )
+whatResources(role, permissions) : resources
 
 Returns what resources a role has the given permissions over.
 
@@ -514,7 +494,6 @@ Returns what resources a role has the given permissions over.
 ```javascript
     role        {String|Array} Roles
     permissions {String|Array} Permissions
-    callback    {Function} Callback called with the result.
 ```
 
 ---

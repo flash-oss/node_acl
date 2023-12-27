@@ -18,10 +18,10 @@ describe("unions", function () {
         }
 
         await backend.clean();
-        const transaction = backend.begin();
+        const transaction = await backend.begin();
         for (const key of Object.keys(testData)) {
             for (const bucket of buckets) {
-                backend.add(transaction, bucket, key, testData[key]);
+                await backend.add(transaction, bucket, key, testData[key]);
             }
         }
         await backend.end(transaction);
@@ -33,38 +33,35 @@ describe("unions", function () {
         await backend.close();
     });
 
-    it("should respond with an appropriate map", function (done) {
+    it("should respond with an appropriate map", async function () {
         var expected = {
             bucket1: ["1", "2", "3", "4", "5"],
             bucket2: ["1", "2", "3", "4", "5"],
         };
-        backend.unions(buckets, Object.keys(testData), function (err, result) {
-            expect(err).to.be.null;
-            expect(result).to.be.eql(expected);
-            done();
-        });
+
+        const result = await backend.unions(buckets, Object.keys(testData));
+
+        expect(result).to.be.eql(expected);
     });
 
-    it("should get only the specified keys", function (done) {
+    it("should get only the specified keys", async function () {
         var expected = {
             bucket1: ["1", "2", "3"],
             bucket2: ["1", "2", "3"],
         };
-        backend.unions(buckets, ["key1"], function (err, result) {
-            expect(err).to.be.null;
-            expect(result).to.be.eql(expected);
-            done();
-        });
+
+        const result = await backend.unions(buckets, ["key1"]);
+
+        expect(result).to.be.eql(expected);
     });
 
-    it("should only get the specified buckets", function (done) {
+    it("should only get the specified buckets", async function () {
         var expected = {
             bucket1: ["1", "2", "3"],
         };
-        backend.unions(["bucket1"], ["key1"], function (err, result) {
-            expect(err).to.be.null;
-            expect(result).to.be.eql(expected);
-            done();
-        });
+
+        const result = await backend.unions(["bucket1"], ["key1"]);
+
+        expect(result).to.be.eql(expected);
     });
 });
