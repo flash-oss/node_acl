@@ -1,4 +1,4 @@
-var Acl = require("../");
+const Acl = require("../");
 const assert = require("node:assert/strict");
 const _ = require("lodash");
 
@@ -17,7 +17,7 @@ describe("acl", () => {
 
     describe("constructor", function () {
         it("should use default `buckets` names", function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             assert.equal(acl.options.buckets.meta, "meta");
             assert.equal(acl.options.buckets.parents, "parents");
@@ -28,7 +28,7 @@ describe("acl", () => {
         });
 
         it("should use given `buckets` names", function () {
-            var acl = new Acl(backend, null, {
+            const acl = new Acl(backend, null, {
                 buckets: {
                     meta: "Meta",
                     parents: "Parents",
@@ -52,19 +52,19 @@ describe("acl", () => {
         this.timeout(10000);
 
         it("guest to view blogs", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.allow("guest", "blogs", "view");
         });
 
         it("guest to view forums", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.allow("guest", "forums", "view");
         });
 
         it("member to view/edit/delete blogs", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.allow("member", "blogs", ["edit", "view", "delete"]);
         });
@@ -72,7 +72,7 @@ describe("acl", () => {
 
     describe("Add user roles", function () {
         it("joed => guest, jsmith => member, harry => admin, test@test.com => member", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.addUserRoles("joed", "guest");
             await acl.addUserRoles("jsmith", "member");
@@ -81,7 +81,7 @@ describe("acl", () => {
         });
 
         it("0 => guest, 1 => member, 2 => admin", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.addUserRoles("0", "guest");
             await acl.addUserRoles("1", "member");
@@ -91,7 +91,7 @@ describe("acl", () => {
 
     describe("read User Roles", function () {
         it("run userRoles function", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
             await acl.addUserRoles("harry", "admin");
 
             const roles = await acl.userRoles("harry");
@@ -107,7 +107,7 @@ describe("acl", () => {
 
     describe("read Role Users", function () {
         it("run roleUsers function", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
             await acl.addUserRoles("harry", "admin");
 
             const users = await acl.roleUsers("admin");
@@ -119,19 +119,19 @@ describe("acl", () => {
 
     describe("allow", function () {
         it("admin view/add/edit/delete users", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.allow("admin", "users", ["add", "edit", "view", "delete"]);
         });
 
         it("foo view/edit blogs", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.allow("foo", "blogs", ["edit", "view"]);
         });
 
         it("bar to view/delete blogs", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.allow("bar", "blogs", ["view", "delete"]);
         });
@@ -139,7 +139,7 @@ describe("acl", () => {
 
     describe("add role parents", function () {
         it("add them", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.addRoleParents("baz", ["foo", "bar"]);
         });
@@ -147,13 +147,13 @@ describe("acl", () => {
 
     describe("add user roles", function () {
         it("add them", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.addUserRoles("james", "baz");
         });
 
         it("add them (numeric userId)", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.addUserRoles("3", "baz");
         });
@@ -161,7 +161,7 @@ describe("acl", () => {
 
     describe("allow admin to do anything", function () {
         it("add them", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.allow("admin", ["blogs", "forums"], "*");
         });
@@ -169,7 +169,7 @@ describe("acl", () => {
 
     describe("Arguments in one array", function () {
         it("give role fumanchu an array of resources and permissions", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.allow([
                 {
@@ -192,12 +192,12 @@ describe("acl", () => {
 
     describe("Add fumanchu role to suzanne", function () {
         it("do it", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
             await acl.addUserRoles("suzanne", "fumanchu");
         });
 
         it("do it (numeric userId)", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
             await acl.addUserRoles("4", "fumanchu");
         });
     });
@@ -205,187 +205,187 @@ describe("acl", () => {
     describe("Allowance queries", function () {
         describe("isAllowed", function () {
             it("Can joed view blogs?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(await acl.isAllowed("joed", "blogs", "view"));
             });
 
             it("Can userId=0 view blogs?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(await acl.isAllowed("0", "blogs", "view"));
             });
 
             it("Can joed view forums?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(await acl.isAllowed("joed", "forums", "view"));
             });
 
             it("Can userId=0 view forums?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(await acl.isAllowed("0", "forums", "view"));
             });
 
             it("Can joed edit forums?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(!(await acl.isAllowed("joed", "forums", "edit")));
             });
 
             it("Can userId=0 edit forums?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(!(await acl.isAllowed("0", "forums", "edit")));
             });
 
             it("Can jsmith edit forums?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(!(await acl.isAllowed("jsmith", "forums", "edit")));
             });
 
             it("Can jsmith edit forums?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(!(await acl.isAllowed("jsmith", "forums", "edit")));
             });
 
             it("Can jsmith edit blogs?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(await acl.isAllowed("jsmith", "blogs", "edit"));
             });
 
             it("Can test@test.com edit forums?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(!(await acl.isAllowed("test@test.com", "forums", "edit")));
             });
 
             it("Can test@test.com edit forums?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(!(await acl.isAllowed("test@test.com", "forums", "edit")));
             });
 
             it("Can test@test.com edit blogs?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(await acl.isAllowed("test@test.com", "blogs", "edit"));
             });
 
             it("Can userId=1 edit blogs?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(await acl.isAllowed("1", "blogs", "edit"));
             });
 
             it("Can jsmith edit, delete and clone blogs?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(!(await acl.isAllowed("jsmith", "blogs", ["edit", "view", "clone"])));
             });
 
             it("Can test@test.com edit, delete and clone blogs?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(!(await acl.isAllowed("test@test.com", "blogs", ["edit", "view", "clone"])));
             });
 
             it("Can userId=1 edit, delete and clone blogs?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(!(await acl.isAllowed("1", "blogs", ["edit", "view", "clone"])));
             });
 
             it("Can jsmith edit, clone blogs?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(!(await acl.isAllowed("jsmith", "blogs", ["edit", "clone"])));
             });
 
             it("Can test@test.com edit, clone blogs?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(!(await acl.isAllowed("test@test.com", "blogs", ["edit", "clone"])));
             });
 
             it("Can userId=1 edit, delete blogs?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(!(await acl.isAllowed("1", "blogs", ["edit", "clone"])));
             });
 
             it("Can james add blogs?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(!(await acl.isAllowed("james", "blogs", "add")));
             });
 
             it("Can userId=3 add blogs?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(!(await acl.isAllowed("3", "blogs", "add")));
             });
 
             it("Can suzanne add blogs?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(!(await acl.isAllowed("suzanne", "blogs", "add")));
             });
 
             it("Can userId=4 add blogs?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(!(await acl.isAllowed("4", "blogs", "add")));
             });
 
             it("Can suzanne get blogs?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(await acl.isAllowed("suzanne", "blogs", "get"));
             });
 
             it("Can userId=4 get blogs?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(await acl.isAllowed("4", "blogs", "get"));
             });
 
             it("Can suzanne delete and put news?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(await acl.isAllowed("suzanne", "news", ["put", "delete"]));
             });
 
             it("Can userId=4 delete and put news?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(await acl.isAllowed("4", "news", ["put", "delete"]));
             });
 
             it("Can suzanne delete and put forums?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(await acl.isAllowed("suzanne", "forums", ["put", "delete"]));
             });
 
             it("Can userId=4 delete and put forums?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(await acl.isAllowed("4", "forums", ["put", "delete"]));
             });
 
             it("Can nobody view news?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(!(await acl.isAllowed("nobody", "blogs", "view")));
             });
 
             it("Can nobody view nothing?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 assert(!(await acl.isAllowed("nobody", "nothing", "view")));
             });
@@ -393,7 +393,7 @@ describe("acl", () => {
 
         describe("allowedPermissions", function () {
             it("What permissions has james over blogs and forums?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 const permissions = await acl.allowedPermissions("james", ["blogs", "forums"]);
 
@@ -408,7 +408,7 @@ describe("acl", () => {
             });
 
             it("What permissions has userId=3 over blogs and forums?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 const permissions = await acl.allowedPermissions("3", ["blogs", "forums"]);
 
@@ -423,7 +423,7 @@ describe("acl", () => {
             });
 
             it("What permissions has nonsenseUser over blogs and forums?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 const permissions = await acl.allowedPermissions("nonsense", ["blogs", "forums"]);
 
@@ -435,7 +435,7 @@ describe("acl", () => {
 
     describe("whatResources queries", function () {
         it('What resources have "bar" some rights on?', async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             const resources = await acl.whatResources("bar");
 
@@ -444,7 +444,7 @@ describe("acl", () => {
         });
 
         it('What resources have "bar" view rights on?', async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             const resources = await acl.whatResources("bar", "view");
 
@@ -452,7 +452,7 @@ describe("acl", () => {
         });
 
         it('What resources have "fumanchu" some rights on?', async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             const resources = await acl.whatResources("fumanchu");
 
@@ -472,7 +472,7 @@ describe("acl", () => {
         });
 
         it('What resources have "baz" some rights on?', async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             const resources = await acl.whatResources("baz");
 
@@ -484,19 +484,19 @@ describe("acl", () => {
 
     describe("removeAllow", function () {
         it("Remove get permissions from resources blogs and forums from role fumanchu", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.removeAllow("fumanchu", ["blogs", "forums"], "get");
         });
 
         it("Remove delete and put permissions from resource news from role fumanchu", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.removeAllow("fumanchu", "news", "delete");
         });
 
         it("Remove view permissions from resource blogs from role bar", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.removeAllow("bar", "blogs", "view");
         });
@@ -504,7 +504,7 @@ describe("acl", () => {
 
     describe("See if permissions were removed", function () {
         it('What resources have "fumanchu" some rights on after removed some of them?', async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             const resources = await acl.whatResources("fumanchu");
 
@@ -522,19 +522,19 @@ describe("acl", () => {
 
     describe("removeRole", function () {
         it("Remove role fumanchu", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.removeRole("fumanchu");
         });
 
         it("Remove role member", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.removeRole("member");
         });
 
         it("Remove role foo", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.removeRole("foo");
         });
@@ -542,7 +542,7 @@ describe("acl", () => {
 
     describe("Was role removed?", function () {
         it('What resources have "fumanchu" some rights on after removed?', async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             const resources = await acl.whatResources("fumanchu");
 
@@ -550,7 +550,7 @@ describe("acl", () => {
         });
 
         it('What resources have "member" some rights on after removed?', async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             const resources = await acl.whatResources("member");
 
@@ -559,7 +559,7 @@ describe("acl", () => {
 
         describe("allowed permissions", function () {
             it("What permissions has jsmith over blogs and forums?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 const permissions = await acl.allowedPermissions("jsmith", ["blogs", "forums"]);
 
@@ -568,7 +568,7 @@ describe("acl", () => {
             });
 
             it("What permissions has test@test.com over blogs and forums?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 const permissions = await acl.allowedPermissions("test@test.com", ["blogs", "forums"]);
 
@@ -577,7 +577,7 @@ describe("acl", () => {
             });
 
             it("What permissions has james over blogs?", async function () {
-                var acl = new Acl(backend);
+                const acl = new Acl(backend);
 
                 const permissions = await acl.allowedPermissions("james", "blogs");
 
@@ -589,7 +589,7 @@ describe("acl", () => {
 
     describe("RoleParentRemoval", function () {
         before(async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.allow("parent1", "x", "read1");
             await acl.allow("parent2", "x", "read2");
@@ -600,7 +600,7 @@ describe("acl", () => {
             await acl.addRoleParents("child", ["parent1", "parent2", "parent3", "parent4", "parent5"]);
         });
 
-        var acl;
+        let acl;
 
         beforeEach(function () {
             acl = new Acl(backend);
@@ -691,13 +691,13 @@ describe("acl", () => {
 
     describe("removeResource", function () {
         it("Remove resource blogs", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.removeResource("blogs");
         });
 
         it("Remove resource users", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.removeResource("users");
         });
@@ -705,7 +705,7 @@ describe("acl", () => {
 
     describe("allowedPermissions", function () {
         it("What permissions has james over blogs?", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             const permissions = await acl.allowedPermissions("james", "blogs");
 
@@ -714,7 +714,7 @@ describe("acl", () => {
         });
 
         it("What permissions has userId=4 over blogs?", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             const permissions = await acl.allowedPermissions("4", "blogs");
 
@@ -725,7 +725,7 @@ describe("acl", () => {
 
     describe("whatResources", function () {
         it('What resources have "baz" some rights on after removed blogs?', async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             const resources = await acl.whatResources("baz");
 
@@ -734,7 +734,7 @@ describe("acl", () => {
         });
 
         it('What resources have "admin" some rights on after removed users resource?', async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             const resources = await acl.whatResources("admin");
 
@@ -745,24 +745,24 @@ describe("acl", () => {
 
     describe("Remove user roles", function () {
         it("Remove role guest from joed", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.removeUserRoles("joed", "guest");
         });
 
         it("Remove role guest from userId=0", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.removeUserRoles("0", "guest");
         });
         it("Remove role admin from harry", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.removeUserRoles("harry", "admin");
         });
 
         it("Remove role admin from userId=2", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.removeUserRoles("2", "admin");
         });
@@ -770,7 +770,7 @@ describe("acl", () => {
 
     describe("Were roles removed?", function () {
         it("What permissions has harry over forums and blogs?", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             const permissions = await acl.allowedPermissions("harry", ["forums", "blogs"]);
 
@@ -779,7 +779,7 @@ describe("acl", () => {
         });
 
         it("What permissions has userId=2 over forums and blogs?", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             const permissions = await acl.allowedPermissions("2", ["forums", "blogs"]);
 
@@ -790,7 +790,7 @@ describe("acl", () => {
 
     describe("Github issue #55: removeAllow is removing all permissions.", function () {
         it("Add roles/resources/permissions", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.addUserRoles("jannette", "member");
             await acl.allow("member", "blogs", ["view", "update"]);
@@ -808,13 +808,13 @@ describe("acl", () => {
 
     describe('Github issue #32: Removing a role removes the entire "allows" document.', function () {
         it("Add roles/resources/permissions", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.allow(["role1", "role2", "role3"], ["res1", "res2", "res3"], ["perm1", "perm2", "perm3"]);
         });
 
         it("Add user roles and parent roles", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.addUserRoles("user1", "role1");
 
@@ -822,7 +822,7 @@ describe("acl", () => {
         });
 
         it("Add user roles and parent roles", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.addUserRoles("1", "role1");
 
@@ -830,7 +830,7 @@ describe("acl", () => {
         });
 
         it("Verify that roles have permissions as assigned", async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             let res = await acl.whatResources("role1");
             assert.deepEqual(res.res1.sort(), ["perm1", "perm2", "perm3"]);
@@ -840,13 +840,13 @@ describe("acl", () => {
         });
 
         it('Remove role "role1"', async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.removeRole("role1");
         });
 
         it('Verify that "role1" has no permissions and "role2" has permissions intact', async function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
             await acl.removeRole("role1");
 

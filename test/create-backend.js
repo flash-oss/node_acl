@@ -33,5 +33,5 @@ module.exports = async function createBackend(backendType) {
         return new Acl.mongodbBackend({ client, prefix: "acl_", useSingle: true });
     }
 
-    throw new Error("Please assign ACL_BACKEND env var to one of: memory, redis, mongo, mongo_single");
+    throw new Error("Please assign ACL_BACKEND env const to one of: memory, redis, mongo, mongo_single");
 };

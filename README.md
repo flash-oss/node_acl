@@ -98,7 +98,7 @@ npm install redis
 Create your acl module by requiring it and instantiating it with a valid backend instance:
 
 ```javascript
-var ACL = require("acl2");
+const ACL = require("acl2");
 
 // Using Redis backend
 acl = new ACL(new ACL.redisBackend({ redis: redisClient }));
@@ -545,7 +545,7 @@ Creates a Redis backend instance.
 Example:
 
 ```javascript
-var client = await require("redis").createClient(6379, "127.0.0.1").connect();
+const client = await require("redis").createClient(6379, "127.0.0.1").connect();
 const ACL = require("acl2");
 const acl = new ACL(new acl.redisBackend({ redis: client, prefix: "my_acl_prefix_" }));
 ```

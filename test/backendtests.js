@@ -1,11 +1,11 @@
 const assert = require("node:assert/strict");
 
-var testData = {
+const testData = {
     key1: ["1", "2", "3"],
     key2: ["3", "2", "4"],
     key3: ["3", "4", "5"],
 };
-var buckets = ["bucket1", "bucket2"];
+const buckets = ["bucket1", "bucket2"];
 
 describe("unions", function () {
     let backend;
@@ -33,7 +33,7 @@ describe("unions", function () {
     });
 
     it("should respond with an appropriate map", async function () {
-        var expected = {
+        const expected = {
             bucket1: ["1", "2", "3", "4", "5"],
             bucket2: ["1", "2", "3", "4", "5"],
         };
@@ -44,7 +44,7 @@ describe("unions", function () {
     });
 
     it("should get only the specified keys", async function () {
-        var expected = {
+        const expected = {
             bucket1: ["1", "2", "3"],
             bucket2: ["1", "2", "3"],
         };
@@ -55,7 +55,7 @@ describe("unions", function () {
     });
 
     it("should only get the specified buckets", async function () {
-        var expected = {
+        const expected = {
             bucket1: ["1", "2", "3"],
         };
 
