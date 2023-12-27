@@ -9,12 +9,10 @@ describe("acl", () => {
         backend = await require("./create-backend")();
     });
 
-    after(function (done) {
-        if (!backend) return done();
-        backend.clean((err) => {
-            if (err) return done(err);
-            backend.close(done);
-        });
+    after(async function () {
+        if (!backend) return;
+        await backend.clean();
+        await backend.close();
     });
 
     describe("constructor", function () {
@@ -823,9 +821,10 @@ describe("acl", () => {
     });
 
     describe("RoleParentRemoval", function () {
-        before(function (done) {
+        before(async function () {
             var acl = new Acl(backend);
-            acl.allow("parent1", "x", "read1")
+            await acl
+                .allow("parent1", "x", "read1")
                 .then(function () {
                     return acl.allow("parent2", "x", "read2");
                 })
@@ -840,8 +839,7 @@ describe("acl", () => {
                 })
                 .then(function () {
                     return acl.addRoleParents("child", ["parent1", "parent2", "parent3", "parent4", "parent5"]);
-                })
-                .done(done, done);
+                });
         });
 
         var acl;
@@ -850,17 +848,15 @@ describe("acl", () => {
             acl = new Acl(backend);
         });
 
-        it("Environment check", function (done) {
-            acl.whatResources("child")
-                .then(function (resources) {
-                    assert.lengthOf(resources.x, 5);
-                    assert.include(resources.x, "read1");
-                    assert.include(resources.x, "read2");
-                    assert.include(resources.x, "read3");
-                    assert.include(resources.x, "read4");
-                    assert.include(resources.x, "read5");
-                })
-                .done(done, done);
+        it("Environment check", async function () {
+            await acl.whatResources("child").then(function (resources) {
+                assert.lengthOf(resources.x, 5);
+                assert.include(resources.x, "read1");
+                assert.include(resources.x, "read2");
+                assert.include(resources.x, "read3");
+                assert.include(resources.x, "read4");
+                assert.include(resources.x, "read5");
+            });
         });
 
         it("Operation uses a callback when removing a specific parent role", function (done) {
@@ -877,8 +873,9 @@ describe("acl", () => {
             });
         });
 
-        it('Remove parent role "parentX" from role "child"', function (done) {
-            acl.removeRoleParents("child", "parentX")
+        it('Remove parent role "parentX" from role "child"', async function () {
+            await acl
+                .removeRoleParents("child", "parentX")
                 .then(function () {
                     return acl.whatResources("child");
                 })
@@ -889,12 +886,12 @@ describe("acl", () => {
                     assert.include(resources.x, "read3");
                     assert.include(resources.x, "read4");
                     assert.include(resources.x, "read5");
-                })
-                .done(done, done);
+                });
         });
 
-        it('Remove parent role "parent1" from role "child"', function (done) {
-            acl.removeRoleParents("child", "parent1")
+        it('Remove parent role "parent1" from role "child"', async function () {
+            await acl
+                .removeRoleParents("child", "parent1")
                 .then(function () {
                     return acl.whatResources("child");
                 })
@@ -904,12 +901,12 @@ describe("acl", () => {
                     assert.include(resources.x, "read3");
                     assert.include(resources.x, "read4");
                     assert.include(resources.x, "read5");
-                })
-                .done(done, done);
+                });
         });
 
-        it('Remove parent roles "parent2" & "parent3" from role "child"', function (done) {
-            acl.removeRoleParents("child", ["parent2", "parent3"])
+        it('Remove parent roles "parent2" & "parent3" from role "child"', async function () {
+            await acl
+                .removeRoleParents("child", ["parent2", "parent3"])
                 .then(function () {
                     return acl.whatResources("child");
                 })
@@ -917,41 +914,40 @@ describe("acl", () => {
                     assert.lengthOf(resources.x, 2);
                     assert.include(resources.x, "read4");
                     assert.include(resources.x, "read5");
-                })
-                .done(done, done);
+                });
         });
 
-        it('Remove all parent roles from role "child"', function (done) {
-            acl.removeRoleParents("child")
+        it('Remove all parent roles from role "child"', async function () {
+            await acl
+                .removeRoleParents("child")
                 .then(function () {
                     return acl.whatResources("child");
                 })
                 .then(function (resources) {
                     assert.notProperty(resources, "x");
-                })
-                .done(done, done);
+                });
         });
 
-        it('Remove all parent roles from role "child" with no parents', function (done) {
-            acl.removeRoleParents("child")
+        it('Remove all parent roles from role "child" with no parents', async function () {
+            await acl
+                .removeRoleParents("child")
                 .then(function () {
                     return acl.whatResources("child");
                 })
                 .then(function (resources) {
                     assert.notProperty(resources, "x");
-                })
-                .done(done, done);
+                });
         });
 
-        it('Remove parent role "parent1" from role "child" with no parents', function (done) {
-            acl.removeRoleParents("child", "parent1")
+        it('Remove parent role "parent1" from role "child" with no parents', async function () {
+            await acl
+                .removeRoleParents("child", "parent1")
                 .then(function () {
                     return acl.whatResources("child");
                 })
                 .then(function (resources) {
                     assert.notProperty(resources, "x");
-                })
-                .done(done, done);
+                });
         });
 
         it("Operation uses a callback when removing all parent roles", function (done) {

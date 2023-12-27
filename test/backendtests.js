@@ -11,34 +11,26 @@ var buckets = ["bucket1", "bucket2"];
 describe("unions", function () {
     let backend;
 
-    before(function (done) {
-        require("./create-backend")()
-            .then((b) => {
-                backend = b;
+    before(async function () {
+        backend = await require("./create-backend")();
+        if (!backend.unions) {
+            this.skip();
+        }
 
-                if (!backend.unions) {
-                    this.skip();
-                }
-
-                backend.clean(function () {
-                    var transaction = backend.begin();
-                    for (const key of Object.keys(testData)) {
-                        for (const bucket of buckets) {
-                            backend.add(transaction, bucket, key, testData[key]);
-                        }
-                    }
-                    backend.end(transaction, done);
-                });
-            })
-            .catch(done);
+        await backend.clean();
+        const transaction = backend.begin();
+        for (const key of Object.keys(testData)) {
+            for (const bucket of buckets) {
+                backend.add(transaction, bucket, key, testData[key]);
+            }
+        }
+        await backend.end(transaction);
     });
 
-    after(function (done) {
-        if (!backend) return done();
-        backend.clean((err) => {
-            if (err) return done(err);
-            backend.close(done);
-        });
+    after(async function () {
+        if (!backend) return;
+        await backend.clean();
+        await backend.close();
     });
 
     it("should respond with an appropriate map", function (done) {
