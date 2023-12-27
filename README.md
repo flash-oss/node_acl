@@ -175,7 +175,7 @@ You can check if a user has permissions to access a given resource with _isAllow
 ```javascript
 const res = await acl.isAllowed("joed", "blogs", "view");
 if (res) {
-    console.log("User joed is allowed to view blogs");
+  console.log("User joed is allowed to view blogs");
 }
 ```
 
@@ -281,21 +281,21 @@ Return all the roles from a given user.
 
 <a name="roleUsers" />
 
-### roleUsers( rolename )
+### roleUsers( roleName )
 
 Return all users who has a given role.
 
 **Arguments**
 
 ```javascript
-    rolename   {String} User id.
+    roleName   {String} User id.
 ```
 
 ---
 
 <a name="hasRole" />
 
-### hasRole( userId, rolename )
+### hasRole( userId, rolroleNameename )
 
 Return boolean whether user has the role
 
@@ -303,7 +303,7 @@ Return boolean whether user has the role
 
 ```javascript
     userId   {String} User id.
-    rolename {String} role name.
+    roleName {String} role name.
 ```
 
 ---
@@ -547,7 +547,9 @@ Example:
 ```javascript
 const client = await require("redis").createClient(6379, "127.0.0.1").connect();
 const ACL = require("acl2");
-const acl = new ACL(new acl.redisBackend({ redis: client, prefix: "my_acl_prefix_" }));
+const acl = new ACL(
+  new acl.redisBackend({ redis: client, prefix: "my_acl_prefix_" })
+);
 ```
 
 ## Tests
