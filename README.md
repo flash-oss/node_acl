@@ -34,20 +34,14 @@ new ACL.redisBackend({ redis, prefix = "acl_" })
 
 - The new default `"acl_"` prefix for both Redis and MongoDB.
 
-- The `mongodb` dependency upgraded from v2 to the latest v3 - v4.
-
-- Both `mongodb` and `redis` dependencies moved to `devDependencies`. You have to install them to your project separately.
-
-- The minimal supported nodejs version was `0.10`, but became the current LTS `12`.
-
-- The first published version of `acl2` is `1.0` to be more SemVer compliant.
+- Maintained and modern code infrastructure.
 
 ### Other notable changes comparing to the original `acl`
 
 - ES6
 - ESLint
 - Prettier
-- Internally use more promises, fewer callbacks for better stack traces
+- Promises only, no callbacks
 - Upgraded all possible dependencies
 - Made unit test debuggable, split them by backend type
 - MongoDB backend accepts either `client` or `db` [objects](https://github.com/mongodb/node-mongodb-native/blob/3.0/CHANGES_3.0.0.md)
@@ -107,7 +101,7 @@ Create your acl module by requiring it and instantiating it with a valid backend
 var ACL = require("acl2");
 
 // Using Redis backend
-acl = new ACL(new ACL.redisBackend({ client: redisClient }));
+acl = new ACL(new ACL.redisBackend({ redis: redisClient }));
 
 // Or Using the memory backend
 acl = new ACL(new ACL.memoryBackend());
@@ -551,11 +545,9 @@ Creates a Redis backend instance.
 Example:
 
 ```javascript
-var client = require("redis").createClient(6379, "127.0.0.1", {
-  no_ready_check: true,
-});
+var client = await require("redis").createClient(6379, "127.0.0.1").connect();
 const ACL = require("acl2");
-const acl = new ACL(new acl.redisBackend({ client, prefix: "my_acl_prefix_" }));
+const acl = new ACL(new acl.redisBackend({ redis: client, prefix: "my_acl_prefix_" }));
 ```
 
 ## Tests

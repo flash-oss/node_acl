@@ -12,14 +12,7 @@ module.exports = async function createBackend(backendType) {
             password: null,
         };
 
-        const redis = await require("redis")
-            .createClient(
-                options.port,
-                options.host /*, {
-                no_ready_check: true,
-            }*/
-            )
-            .connect();
+        const redis = await require("redis").createClient(options.port, options.host).connect();
 
         return new Acl.redisBackend({ redis });
     }
