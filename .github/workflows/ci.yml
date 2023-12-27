@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        node: ['12', '14', '16']
+        node: ['16', '18', '20']
     steps:
       - uses: actions/checkout@v2
 
@@ -30,8 +30,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        node: ['12', '14', '16']
-        redis-version: [4, 5, 6]
+        node: ['16', '18', '20']
+        redis-version: [5, 6, 7]
     steps:
       - uses: actions/checkout@v2
 
@@ -57,8 +57,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        node: ['12', '14', '16']
-        mongodb-version: [4.0, 5.0]
+        node: ['16', '18', '20']
+        mongodb-version: [6, 7]
     steps:
       - uses: actions/checkout@v2
 
@@ -74,9 +74,9 @@ jobs:
 
       - run: npm install
 
-      - run: npm install mongodb@4
+      - run: npm install mongodb@6
       - run: npm run test_mongo
-      - run: npm install mongodb@3
+      - run: npm install mongodb@5
       - run: npm run test_mongo
 
   test_mongo_single:
@@ -85,8 +85,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        node: ['12', '14', '16']
-        mongodb-version: [4.0, 5.0]
+        node: ['16', '18', '20']
+        mongodb-version: [6, 7]
     steps:
       - uses: actions/checkout@v2
 
@@ -102,7 +102,7 @@ jobs:
 
       - run: npm install
 
-      - run: npm install mongodb@4
+      - run: npm install mongodb@6
       - run: npm run test_mongo_single
-      - run: npm install mongodb@3
+      - run: npm install mongodb@5
       - run: npm run test_mongo_single
