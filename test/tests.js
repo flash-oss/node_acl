@@ -1,6 +1,6 @@
-var Acl = require("../"),
-    assert = require("chai").assert,
-    expect = require("chai").expect;
+var Acl = require("../");
+const assert = require("node:assert/strict");
+const _ = require("lodash");
 
 describe("acl", () => {
     let backend;
@@ -19,12 +19,12 @@ describe("acl", () => {
         it("should use default `buckets` names", function () {
             var acl = new Acl(backend);
 
-            expect(acl.options.buckets.meta).to.equal("meta");
-            expect(acl.options.buckets.parents).to.equal("parents");
-            expect(acl.options.buckets.permissions).to.equal("permissions");
-            expect(acl.options.buckets.resources).to.equal("resources");
-            expect(acl.options.buckets.roles).to.equal("roles");
-            expect(acl.options.buckets.users).to.equal("users");
+            assert.equal(acl.options.buckets.meta, "meta");
+            assert.equal(acl.options.buckets.parents, "parents");
+            assert.equal(acl.options.buckets.permissions, "permissions");
+            assert.equal(acl.options.buckets.resources, "resources");
+            assert.equal(acl.options.buckets.roles, "roles");
+            assert.equal(acl.options.buckets.users, "users");
         });
 
         it("should use given `buckets` names", function () {
@@ -39,12 +39,12 @@ describe("acl", () => {
                 },
             });
 
-            expect(acl.options.buckets.meta).to.equal("Meta");
-            expect(acl.options.buckets.parents).to.equal("Parents");
-            expect(acl.options.buckets.permissions).to.equal("Permissions");
-            expect(acl.options.buckets.resources).to.equal("Resources");
-            expect(acl.options.buckets.roles).to.equal("Roles");
-            expect(acl.options.buckets.users).to.equal("Users");
+            assert.equal(acl.options.buckets.meta, "Meta");
+            assert.equal(acl.options.buckets.parents, "Parents");
+            assert.equal(acl.options.buckets.permissions, "Permissions");
+            assert.equal(acl.options.buckets.resources, "Resources");
+            assert.equal(acl.options.buckets.roles, "Roles");
+            assert.equal(acl.options.buckets.users, "Users");
         });
     });
 
@@ -101,7 +101,7 @@ describe("acl", () => {
             assert.ok(is_in_role);
 
             is_in_role = await acl.hasRole("harry", "no role");
-            assert.notOk(is_in_role);
+            assert.ok(!is_in_role);
         });
     });
 
@@ -112,8 +112,8 @@ describe("acl", () => {
 
             const users = await acl.roleUsers("admin");
 
-            assert.include(users, "harry");
-            assert.isFalse("invalid User" in users);
+            assert(users.includes("harry"));
+            assert(!("invalid User" in users));
         });
     });
 
@@ -397,12 +397,12 @@ describe("acl", () => {
 
                 const permissions = await acl.allowedPermissions("james", ["blogs", "forums"]);
 
-                assert.property(permissions, "blogs");
-                assert.property(permissions, "forums");
+                assert(permissions.blogs);
+                assert(permissions.forums);
 
-                assert.include(permissions.blogs, "edit");
-                assert.include(permissions.blogs, "delete");
-                assert.include(permissions.blogs, "view");
+                assert(permissions.blogs.includes("edit"));
+                assert(permissions.blogs.includes("delete"));
+                assert(permissions.blogs.includes("view"));
 
                 assert(permissions.forums.length === 0);
             });
@@ -412,12 +412,12 @@ describe("acl", () => {
 
                 const permissions = await acl.allowedPermissions("3", ["blogs", "forums"]);
 
-                assert.property(permissions, "blogs");
-                assert.property(permissions, "forums");
+                assert(permissions.blogs);
+                assert(permissions.forums);
 
-                assert.include(permissions.blogs, "edit");
-                assert.include(permissions.blogs, "delete");
-                assert.include(permissions.blogs, "view");
+                assert(permissions.blogs.includes("edit"));
+                assert(permissions.blogs.includes("delete"));
+                assert(permissions.blogs.includes("view"));
 
                 assert(permissions.forums.length === 0);
             });
@@ -439,8 +439,8 @@ describe("acl", () => {
 
             const resources = await acl.whatResources("bar");
 
-            assert.include(resources.blogs, "view");
-            assert.include(resources.blogs, "delete");
+            assert(resources.blogs.includes("view"));
+            assert(resources.blogs.includes("delete"));
         });
 
         it('What resources have "bar" view rights on?', async function () {
@@ -448,7 +448,7 @@ describe("acl", () => {
 
             const resources = await acl.whatResources("bar", "view");
 
-            assert.include(resources, "blogs");
+            assert(resources.includes("blogs"));
         });
 
         it('What resources have "fumanchu" some rights on?', async function () {
@@ -456,19 +456,19 @@ describe("acl", () => {
 
             const resources = await acl.whatResources("fumanchu");
 
-            assert.include(resources.blogs, "get");
-            assert.include(resources.forums, "delete");
-            assert.include(resources.forums, "get");
-            assert.include(resources.forums, "put");
-            assert.include(resources.news, "delete");
-            assert.include(resources.news, "get");
-            assert.include(resources.news, "put");
-            assert.include(resources["/path/file/file1.txt"], "delete");
-            assert.include(resources["/path/file/file1.txt"], "get");
-            assert.include(resources["/path/file/file1.txt"], "put");
-            assert.include(resources["/path/file/file2.txt"], "delete");
-            assert.include(resources["/path/file/file2.txt"], "get");
-            assert.include(resources["/path/file/file2.txt"], "put");
+            assert(resources.blogs.includes("get"));
+            assert(resources.forums.includes("delete"));
+            assert(resources.forums.includes("get"));
+            assert(resources.forums.includes("put"));
+            assert(resources.news.includes("delete"));
+            assert(resources.news.includes("get"));
+            assert(resources.news.includes("put"));
+            assert(resources["/path/file/file1.txt"].includes("delete"));
+            assert(resources["/path/file/file1.txt"].includes("get"));
+            assert(resources["/path/file/file1.txt"].includes("put"));
+            assert(resources["/path/file/file2.txt"].includes("delete"));
+            assert(resources["/path/file/file2.txt"].includes("get"));
+            assert(resources["/path/file/file2.txt"].includes("put"));
         });
 
         it('What resources have "baz" some rights on?', async function () {
@@ -476,9 +476,9 @@ describe("acl", () => {
 
             const resources = await acl.whatResources("baz");
 
-            assert.include(resources.blogs, "view");
-            assert.include(resources.blogs, "delete");
-            assert.include(resources.blogs, "edit");
+            assert(resources.blogs.includes("view"));
+            assert(resources.blogs.includes("delete"));
+            assert(resources.blogs.includes("edit"));
         });
     });
 
@@ -508,15 +508,15 @@ describe("acl", () => {
 
             const resources = await acl.whatResources("fumanchu");
 
-            assert.isFalse("blogs" in resources);
-            assert.property(resources, "news");
-            assert.include(resources.news, "get");
-            assert.include(resources.news, "put");
-            assert.isFalse("delete" in resources.news);
+            assert(!("blogs" in resources));
+            assert(resources.news);
+            assert(resources.news.includes("get"));
+            assert(resources.news.includes("put"));
+            assert(!("delete" in resources.news));
 
-            assert.property(resources, "forums");
-            assert.include(resources.forums, "delete");
-            assert.include(resources.forums, "put");
+            assert(resources.forums);
+            assert(resources.forums.includes("delete"));
+            assert(resources.forums.includes("put"));
         });
     });
 
@@ -581,8 +581,8 @@ describe("acl", () => {
 
                 const permissions = await acl.allowedPermissions("james", "blogs");
 
-                assert.property(permissions, "blogs");
-                assert.include(permissions.blogs, "delete");
+                assert(permissions.blogs);
+                assert(permissions.blogs.includes("delete"));
             });
         });
     });
@@ -609,12 +609,12 @@ describe("acl", () => {
         it("Environment check", async function () {
             const resources = await acl.whatResources("child");
 
-            assert.lengthOf(resources.x, 5);
-            assert.include(resources.x, "read1");
-            assert.include(resources.x, "read2");
-            assert.include(resources.x, "read3");
-            assert.include(resources.x, "read4");
-            assert.include(resources.x, "read5");
+            assert.equal(resources.x.length, 5);
+            assert(resources.x.includes("read1"));
+            assert(resources.x.includes("read2"));
+            assert(resources.x.includes("read3"));
+            assert(resources.x.includes("read4"));
+            assert(resources.x.includes("read5"));
         });
 
         it("Operation removing a specific parent role", async function () {
@@ -630,12 +630,12 @@ describe("acl", () => {
 
             let resources = await acl.whatResources("child");
 
-            assert.lengthOf(resources.x, 5);
-            assert.include(resources.x, "read1");
-            assert.include(resources.x, "read2");
-            assert.include(resources.x, "read3");
-            assert.include(resources.x, "read4");
-            assert.include(resources.x, "read5");
+            assert.equal(resources.x.length, 5);
+            assert(resources.x.includes("read1"));
+            assert(resources.x.includes("read2"));
+            assert(resources.x.includes("read3"));
+            assert(resources.x.includes("read4"));
+            assert(resources.x.includes("read5"));
         });
 
         it('Remove parent role "parent1" from role "child"', async function () {
@@ -643,11 +643,11 @@ describe("acl", () => {
 
             let resources = await acl.whatResources("child");
 
-            assert.lengthOf(resources.x, 4);
-            assert.include(resources.x, "read2");
-            assert.include(resources.x, "read3");
-            assert.include(resources.x, "read4");
-            assert.include(resources.x, "read5");
+            assert.equal(resources.x.length, 4);
+            assert(resources.x.includes("read2"));
+            assert(resources.x.includes("read3"));
+            assert(resources.x.includes("read4"));
+            assert(resources.x.includes("read5"));
         });
 
         it('Remove parent roles "parent2" & "parent3" from role "child"', async function () {
@@ -655,9 +655,9 @@ describe("acl", () => {
 
             let resources = await acl.whatResources("child");
 
-            assert.lengthOf(resources.x, 2);
-            assert.include(resources.x, "read4");
-            assert.include(resources.x, "read5");
+            assert.equal(resources.x.length, 2);
+            assert(resources.x.includes("read4"));
+            assert(resources.x.includes("read5"));
         });
 
         it('Remove all parent roles from role "child"', async function () {
@@ -665,7 +665,7 @@ describe("acl", () => {
 
             let resources = await acl.whatResources("child");
 
-            assert.notProperty(resources, "x");
+            assert(!resources.x);
         });
 
         it('Remove all parent roles from role "child" with no parents', async function () {
@@ -673,7 +673,7 @@ describe("acl", () => {
 
             let resources = await acl.whatResources("child");
 
-            assert.notProperty(resources, "x");
+            assert(!resources.x);
         });
 
         it('Remove parent role "parent1" from role "child" with no parents', async function () {
@@ -681,7 +681,7 @@ describe("acl", () => {
 
             let resources = await acl.whatResources("child");
 
-            assert.notProperty(resources, "x");
+            assert(!resources.x);
         });
 
         it("Operation removing all parent roles", async function () {
@@ -709,7 +709,7 @@ describe("acl", () => {
 
             const permissions = await acl.allowedPermissions("james", "blogs");
 
-            assert.property(permissions, "blogs");
+            assert(permissions.blogs);
             assert(permissions.blogs.length === 0);
         });
 
@@ -718,7 +718,7 @@ describe("acl", () => {
 
             const permissions = await acl.allowedPermissions("4", "blogs");
 
-            assert.property(permissions, "blogs");
+            assert(permissions.blogs);
             assert(permissions.blogs.length === 0);
         });
     });
@@ -729,7 +729,7 @@ describe("acl", () => {
 
             const resources = await acl.whatResources("baz");
 
-            assert.isObject(resources);
+            assert(_.isPlainObject(resources));
             assert(Object.keys(resources).length === 0);
         });
 
@@ -738,8 +738,8 @@ describe("acl", () => {
 
             const resources = await acl.whatResources("admin");
 
-            assert.isFalse("users" in resources);
-            assert.isFalse("blogs" in resources);
+            assert(!("users" in resources));
+            assert(!("blogs" in resources));
         });
     });
 
@@ -774,7 +774,7 @@ describe("acl", () => {
 
             const permissions = await acl.allowedPermissions("harry", ["forums", "blogs"]);
 
-            assert.isObject(permissions);
+            assert(_.isPlainObject(permissions));
             assert(permissions.forums.length === 0);
         });
 
@@ -783,7 +783,7 @@ describe("acl", () => {
 
             const permissions = await acl.allowedPermissions("2", ["forums", "blogs"]);
 
-            assert.isObject(permissions);
+            assert(_.isPlainObject(permissions));
             assert(permissions.forums.length === 0);
         });
     });

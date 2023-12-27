@@ -1,5 +1,4 @@
-var chai = require("chai");
-var expect = chai.expect;
+const assert = require("node:assert/strict");
 
 var testData = {
     key1: ["1", "2", "3"],
@@ -41,7 +40,7 @@ describe("unions", function () {
 
         const result = await backend.unions(buckets, Object.keys(testData));
 
-        expect(result).to.be.eql(expected);
+        assert.deepEqual(result, expected);
     });
 
     it("should get only the specified keys", async function () {
@@ -52,7 +51,7 @@ describe("unions", function () {
 
         const result = await backend.unions(buckets, ["key1"]);
 
-        expect(result).to.be.eql(expected);
+        assert.deepEqual(result, expected);
     });
 
     it("should only get the specified buckets", async function () {
@@ -62,6 +61,6 @@ describe("unions", function () {
 
         const result = await backend.unions(["bucket1"], ["key1"]);
 
-        expect(result).to.be.eql(expected);
+        assert.deepEqual(result, expected);
     });
 });
