@@ -617,11 +617,11 @@ describe("acl", () => {
             assert.include(resources.x, "read5");
         });
 
-        it("Operation uses a callback when removing a specific parent role", async function () {
+        it("Operation removing a specific parent role", async function () {
             await acl.removeRoleParents("child", "parentX");
         });
 
-        it("Operation uses a callback when removing multiple specific parent roles", async function () {
+        it("Operation removing multiple specific parent roles", async function () {
             await acl.removeRoleParents("child", ["parentX", "parentY"]);
         });
 
@@ -684,7 +684,7 @@ describe("acl", () => {
             assert.notProperty(resources, "x");
         });
 
-        it("Operation uses a callback when removing all parent roles", async function () {
+        it("Operation removing all parent roles", async function () {
             await acl.removeRoleParents("child");
         });
     });
@@ -716,7 +716,7 @@ describe("acl", () => {
         it("What permissions has userId=4 over blogs?", async function () {
             var acl = new Acl(backend);
 
-            const permissions = await acl.allowedPermissions(4, "blogs");
+            const permissions = await acl.allowedPermissions("4", "blogs");
 
             assert.property(permissions, "blogs");
             assert(permissions.blogs.length === 0);
@@ -781,7 +781,7 @@ describe("acl", () => {
         it("What permissions has userId=2 over forums and blogs?", async function () {
             var acl = new Acl(backend);
 
-            const permissions = await acl.allowedPermissions(2, ["forums", "blogs"]);
+            const permissions = await acl.allowedPermissions("2", ["forums", "blogs"]);
 
             assert.isObject(permissions);
             assert(permissions.forums.length === 0);

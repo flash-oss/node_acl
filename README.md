@@ -118,48 +118,47 @@ acl = new ACL(new ACL.mongodbBackend({ client: mongoClient }));
 
 See below for full list of backend constructor arguments.
 
-All the following functions return a promise or optionally take a callback with
-an err parameter as last parameter. We omit them in the examples for simplicity.
+All the following functions return a promise.
 
 Create roles implicitly by giving them permissions:
 
 ```javascript
 // guest is allowed to view blogs
-acl.allow("guest", "blogs", "view");
+await acl.allow("guest", "blogs", "view");
 
 // allow function accepts arrays as any parameter
-acl.allow("member", "blogs", ["edit", "view", "delete"]);
+await acl.allow("member", "blogs", ["edit", "view", "delete"]);
 ```
 
 Users are likewise created implicitly by assigning them roles:
 
 ```javascript
-acl.addUserRoles("joed", "guest");
+await acl.addUserRoles("joed", "guest");
 ```
 
 Hierarchies of roles can be created by assigning parents to roles:
 
 ```javascript
-acl.addRoleParents("baz", ["foo", "bar"]);
+await acl.addRoleParents("baz", ["foo", "bar"]);
 ```
 
 Note that the order in which you call all the functions is irrelevant (you can add parents first and assign permissions to roles later)
 
 ```javascript
-acl.allow("foo", ["blogs", "forums", "news"], ["view", "delete"]);
+await acl.allow("foo", ["blogs", "forums", "news"], ["view", "delete"]);
 ```
 
 Use the wildcard to give all permissions:
 
 ```javascript
-acl.allow("admin", ["blogs", "forums"], "*");
+await acl.allow("admin", ["blogs", "forums"], "*");
 ```
 
 Sometimes is necessary to set permissions on many different roles and resources. This would
 lead to unnecessary nested callbacks for handling errors. Instead use the following:
 
 ```javascript
-acl.allow([
+await acl.allow([
   {
     roles: ["guest", "member"],
     allows: [
@@ -189,7 +188,7 @@ if (res) {
 Of course arrays are also accepted in this function:
 
 ```javascript
-acl.isAllowed("jsmith", "blogs", ["edit", "view", "delete"]);
+await acl.isAllowed("jsmith", "blogs", ["edit", "view", "delete"]);
 ```
 
 Note that all permissions must be fulfilled in order to get _true_.
@@ -222,7 +221,7 @@ app.put('/blogs/:id', acl.middleware(), function(req, res, next){…}
 The middleware will protect the resource named by _req.url_, pick the user from _req.session.userId_ and check the permission for _req.method_, so the above would be equivalent to something like this:
 
 ```javascript
-acl.isAllowed(req.session.userId, "/blogs/12345", "put");
+await acl.isAllowed(req.session.userId, "/blogs/12345", "put");
 ```
 
 The middleware accepts 3 optional arguments, that are useful in some situations. For example, sometimes we
@@ -251,7 +250,7 @@ Adds roles to a given user id.
 **Arguments**
 
 ```javascript
-    userId   {String|Number} User id.
+    userId   {String} User id.
     roles    {String|Array} Role(s) to add to the user id.
 ```
 
@@ -259,16 +258,15 @@ Adds roles to a given user id.
 
 <a name="removeUserRoles"/>
 
-### removeUserRoles( userId, roles, function(err) )
+### removeUserRoles( userId, roles )
 
 Remove roles from a given user.
 
 **Arguments**
 
 ```javascript
-    userId   {String|Number} User id.
+    userId   {String} User id.
     roles    {String|Array} Role(s) to remove to the user id.
-    callback {Function} Callback called when finished.
 ```
 
 ---
@@ -282,22 +280,21 @@ Return all the roles from a given user.
 **Arguments**
 
 ```javascript
-    userId   {String|Number} User id.
+    userId   {String} User id.
 ```
 
 ---
 
 <a name="roleUsers" />
 
-### roleUsers( rolename, function(err, users) )
+### roleUsers( rolename )
 
 Return all users who has a given role.
 
 **Arguments**
 
 ```javascript
-    rolename   {String|Number} User id.
-    callback {Function} Callback called when finished.
+    rolename   {String} User id.
 ```
 
 ---
@@ -311,8 +308,8 @@ Return boolean whether user has the role
 **Arguments**
 
 ```javascript
-    userId   {String|Number} User id.
-    rolename {String|Number} role name.
+    userId   {String} User id.
+    rolename {String} role name.
 ```
 
 ---
@@ -433,7 +430,7 @@ resource name to a list of permissions for that resource.
 **Arguments**
 
 ```javascript
-    userId    {String|Number} User id.
+    userId    {String} User id.
     resources {String|Array} resource(s) to ask permissions for.
 ```
 
@@ -449,7 +446,7 @@ permissions (note: it must fulfill all the permissions).
 **Arguments**
 
 ```javascript
-    userId      {String|Number} User id.
+    userId      {String} User id.
     resource    {String} resource to ask permissions for.
     permissions {String|Array} asked permissions.
 ```
@@ -458,7 +455,7 @@ permissions (note: it must fulfill all the permissions).
 
 <a name="areAnyRolesAllowed" />
 
-### areAnyRolesAllowed( roles, resource, permissions, function(err, allowed) )
+### areAnyRolesAllowed( roles, resource, permissions )
 
 Returns true if any of the given roles have the right permissions.
 
@@ -468,7 +465,6 @@ Returns true if any of the given roles have the right permissions.
     roles       {String|Array} Role(s) to check the permissions for.
     resource    {String} resource to ask permissions for.
     permissions {String|Array} asked permissions.
-    callback    {Function} Callback called with the result.
 ```
 
 ---
@@ -510,7 +506,7 @@ To create a custom getter for userId, pass a function(req, res) which returns th
 
 ```javascript
     numPathComponents {Number} number of components in the url to be considered part of the resource name.
-    userId            {String|Number|Function} the user id for the acl system (defaults to req.session.userId)
+    userId            {String} the user id for the acl system (defaults to req.session.userId)
     permissions       {String|Array} the permission(s) to check for (defaults to req.method.toLowerCase())
 ```
 
