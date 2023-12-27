@@ -1,6 +1,6 @@
-var Acl = require("../"),
-    assert = require("chai").assert,
-    expect = require("chai").expect;
+const Acl = require("../");
+const assert = require("node:assert/strict");
+const _ = require("lodash");
 
 describe("acl", () => {
     let backend;
@@ -9,28 +9,26 @@ describe("acl", () => {
         backend = await require("./create-backend")();
     });
 
-    after(function (done) {
-        if (!backend) return done();
-        backend.clean((err) => {
-            if (err) return done(err);
-            backend.close(done);
-        });
+    after(async function () {
+        if (!backend) return;
+        await backend.clean();
+        await backend.close();
     });
 
     describe("constructor", function () {
         it("should use default `buckets` names", function () {
-            var acl = new Acl(backend);
+            const acl = new Acl(backend);
 
-            expect(acl.options.buckets.meta).to.equal("meta");
-            expect(acl.options.buckets.parents).to.equal("parents");
-            expect(acl.options.buckets.permissions).to.equal("permissions");
-            expect(acl.options.buckets.resources).to.equal("resources");
-            expect(acl.options.buckets.roles).to.equal("roles");
-            expect(acl.options.buckets.users).to.equal("users");
+            assert.equal(acl.options.buckets.meta, "meta");
+            assert.equal(acl.options.buckets.parents, "parents");
+            assert.equal(acl.options.buckets.permissions, "permissions");
+            assert.equal(acl.options.buckets.resources, "resources");
+            assert.equal(acl.options.buckets.roles, "roles");
+            assert.equal(acl.options.buckets.users, "users");
         });
 
         it("should use given `buckets` names", function () {
-            var acl = new Acl(backend, null, {
+            const acl = new Acl(backend, null, {
                 buckets: {
                     meta: "Meta",
                     parents: "Parents",
@@ -41,1158 +39,822 @@ describe("acl", () => {
                 },
             });
 
-            expect(acl.options.buckets.meta).to.equal("Meta");
-            expect(acl.options.buckets.parents).to.equal("Parents");
-            expect(acl.options.buckets.permissions).to.equal("Permissions");
-            expect(acl.options.buckets.resources).to.equal("Resources");
-            expect(acl.options.buckets.roles).to.equal("Roles");
-            expect(acl.options.buckets.users).to.equal("Users");
+            assert.equal(acl.options.buckets.meta, "Meta");
+            assert.equal(acl.options.buckets.parents, "Parents");
+            assert.equal(acl.options.buckets.permissions, "Permissions");
+            assert.equal(acl.options.buckets.resources, "Resources");
+            assert.equal(acl.options.buckets.roles, "Roles");
+            assert.equal(acl.options.buckets.users, "Users");
         });
     });
 
     describe("allow", function () {
         this.timeout(10000);
 
-        it("guest to view blogs", function (done) {
-            var acl = new Acl(backend);
+        it("guest to view blogs", async function () {
+            const acl = new Acl(backend);
 
-            acl.allow("guest", "blogs", "view", function (err) {
-                assert.ifError(err);
-                done();
-            });
+            await acl.allow("guest", "blogs", "view");
         });
 
-        it("guest to view forums", function (done) {
-            var acl = new Acl(backend);
+        it("guest to view forums", async function () {
+            const acl = new Acl(backend);
 
-            acl.allow("guest", "forums", "view", function (err) {
-                assert.ifError(err);
-                done();
-            });
+            await acl.allow("guest", "forums", "view");
         });
 
-        it("member to view/edit/delete blogs", function (done) {
-            var acl = new Acl(backend);
+        it("member to view/edit/delete blogs", async function () {
+            const acl = new Acl(backend);
 
-            acl.allow("member", "blogs", ["edit", "view", "delete"], function (err) {
-                assert.ifError(err);
-                done();
-            });
+            await acl.allow("member", "blogs", ["edit", "view", "delete"]);
         });
     });
 
     describe("Add user roles", function () {
-        it("joed => guest, jsmith => member, harry => admin, test@test.com => member", function (done) {
-            var acl = new Acl(backend);
+        it("joed => guest, jsmith => member, harry => admin, test@test.com => member", async function () {
+            const acl = new Acl(backend);
 
-            acl.addUserRoles("joed", "guest", function (err) {
-                assert.ifError(err);
-
-                acl.addUserRoles("jsmith", "member", function (err) {
-                    assert.ifError(err);
-
-                    acl.addUserRoles("harry", "admin", function (err) {
-                        assert.ifError(err);
-
-                        acl.addUserRoles("test@test.com", "member", function (err) {
-                            assert.ifError(err);
-                            done();
-                        });
-                    });
-                });
-            });
+            await acl.addUserRoles("joed", "guest");
+            await acl.addUserRoles("jsmith", "member");
+            await acl.addUserRoles("harry", "admin");
+            await acl.addUserRoles("test@test.com", "member");
         });
 
-        it("0 => guest, 1 => member, 2 => admin", function (done) {
-            var acl = new Acl(backend);
+        it("0 => guest, 1 => member, 2 => admin", async function () {
+            const acl = new Acl(backend);
 
-            acl.addUserRoles(0, "guest", function (err) {
-                assert.ifError(err);
-
-                acl.addUserRoles(1, "member", function (err) {
-                    assert.ifError(err);
-
-                    acl.addUserRoles(2, "admin", function (err) {
-                        assert.ifError(err);
-                        done();
-                    });
-                });
-            });
+            await acl.addUserRoles("0", "guest");
+            await acl.addUserRoles("1", "member");
+            await acl.addUserRoles("2", "admin");
         });
     });
 
     describe("read User Roles", function () {
-        it("run userRoles function", function (done) {
-            var acl = new Acl(backend);
-            acl.addUserRoles("harry", "admin", function (err) {
-                if (err) return done(err);
+        it("run userRoles function", async function () {
+            const acl = new Acl(backend);
+            await acl.addUserRoles("harry", "admin");
 
-                acl.userRoles("harry", function (err, roles) {
-                    if (err) return done(err);
+            const roles = await acl.userRoles("harry");
+            assert.deepEqual(roles, ["admin"]);
 
-                    assert.deepEqual(roles, ["admin"]);
-                    acl.hasRole("harry", "admin", function (err, is_in_role) {
-                        if (err) return done(err);
+            let is_in_role = await acl.hasRole("harry", "admin");
+            assert.ok(is_in_role);
 
-                        assert.ok(is_in_role);
-                        acl.hasRole("harry", "no role", function (err, is_in_role) {
-                            if (err) return done(err);
-
-                            assert.notOk(is_in_role);
-                            done();
-                        });
-                    });
-                });
-            });
+            is_in_role = await acl.hasRole("harry", "no role");
+            assert.ok(!is_in_role);
         });
     });
 
     describe("read Role Users", function () {
-        it("run roleUsers function", function (done) {
-            var acl = new Acl(backend);
-            acl.addUserRoles("harry", "admin", function (err) {
-                if (err) return done(err);
+        it("run roleUsers function", async function () {
+            const acl = new Acl(backend);
+            await acl.addUserRoles("harry", "admin");
 
-                acl.roleUsers("admin", function (err, users) {
-                    if (err) return done(err);
-                    assert.include(users, "harry");
-                    assert.isFalse("invalid User" in users);
-                    done();
-                });
-            });
+            const users = await acl.roleUsers("admin");
+
+            assert(users.includes("harry"));
+            assert(!("invalid User" in users));
         });
     });
 
     describe("allow", function () {
-        it("admin view/add/edit/delete users", function (done) {
-            var acl = new Acl(backend);
+        it("admin view/add/edit/delete users", async function () {
+            const acl = new Acl(backend);
 
-            acl.allow("admin", "users", ["add", "edit", "view", "delete"], function (err) {
-                assert.ifError(err);
-                done();
-            });
+            await acl.allow("admin", "users", ["add", "edit", "view", "delete"]);
         });
 
-        it("foo view/edit blogs", function (done) {
-            var acl = new Acl(backend);
+        it("foo view/edit blogs", async function () {
+            const acl = new Acl(backend);
 
-            acl.allow("foo", "blogs", ["edit", "view"], function (err) {
-                assert.ifError(err);
-                done();
-            });
+            await acl.allow("foo", "blogs", ["edit", "view"]);
         });
 
-        it("bar to view/delete blogs", function (done) {
-            var acl = new Acl(backend);
+        it("bar to view/delete blogs", async function () {
+            const acl = new Acl(backend);
 
-            acl.allow("bar", "blogs", ["view", "delete"], function (err) {
-                assert.ifError(err);
-                done();
-            });
+            await acl.allow("bar", "blogs", ["view", "delete"]);
         });
     });
 
     describe("add role parents", function () {
-        it("add them", function (done) {
-            var acl = new Acl(backend);
+        it("add them", async function () {
+            const acl = new Acl(backend);
 
-            acl.addRoleParents("baz", ["foo", "bar"], function (err) {
-                assert.ifError(err);
-                done();
-            });
+            await acl.addRoleParents("baz", ["foo", "bar"]);
         });
     });
 
     describe("add user roles", function () {
-        it("add them", function (done) {
-            var acl = new Acl(backend);
+        it("add them", async function () {
+            const acl = new Acl(backend);
 
-            acl.addUserRoles("james", "baz", function (err) {
-                assert.ifError(err);
-                done();
-            });
+            await acl.addUserRoles("james", "baz");
         });
-        it("add them (numeric userId)", function (done) {
-            var acl = new Acl(backend);
 
-            acl.addUserRoles(3, "baz", function (err) {
-                assert.ifError(err);
-                done();
-            });
+        it("add them (numeric userId)", async function () {
+            const acl = new Acl(backend);
+
+            await acl.addUserRoles("3", "baz");
         });
     });
 
     describe("allow admin to do anything", function () {
-        it("add them", function (done) {
-            var acl = new Acl(backend);
+        it("add them", async function () {
+            const acl = new Acl(backend);
 
-            acl.allow("admin", ["blogs", "forums"], "*", function (err) {
-                assert.ifError(err);
-                done();
-            });
+            await acl.allow("admin", ["blogs", "forums"], "*");
         });
     });
 
     describe("Arguments in one array", function () {
-        it("give role fumanchu an array of resources and permissions", function (done) {
-            var acl = new Acl(backend);
+        it("give role fumanchu an array of resources and permissions", async function () {
+            const acl = new Acl(backend);
 
-            acl.allow(
-                [
-                    {
-                        roles: "fumanchu",
-                        allows: [
-                            { resources: "blogs", permissions: "get" },
-                            {
-                                resources: ["forums", "news"],
-                                permissions: ["get", "put", "delete"],
-                            },
-                            {
-                                resources: ["/path/file/file1.txt", "/path/file/file2.txt"],
-                                permissions: ["get", "put", "delete"],
-                            },
-                        ],
-                    },
-                ],
-                function (err) {
-                    assert.ifError(err);
-                    done();
-                }
-            );
+            await acl.allow([
+                {
+                    roles: "fumanchu",
+                    allows: [
+                        { resources: "blogs", permissions: "get" },
+                        {
+                            resources: ["forums", "news"],
+                            permissions: ["get", "put", "delete"],
+                        },
+                        {
+                            resources: ["/path/file/file1.txt", "/path/file/file2.txt"],
+                            permissions: ["get", "put", "delete"],
+                        },
+                    ],
+                },
+            ]);
         });
     });
 
     describe("Add fumanchu role to suzanne", function () {
-        it("do it", function (done) {
-            var acl = new Acl(backend);
-            acl.addUserRoles("suzanne", "fumanchu", function (err) {
-                assert.ifError(err);
-                done();
-            });
+        it("do it", async function () {
+            const acl = new Acl(backend);
+            await acl.addUserRoles("suzanne", "fumanchu");
         });
-        it("do it (numeric userId)", function (done) {
-            var acl = new Acl(backend);
-            acl.addUserRoles(4, "fumanchu", function (err) {
-                assert.ifError(err);
-                done();
-            });
+
+        it("do it (numeric userId)", async function () {
+            const acl = new Acl(backend);
+            await acl.addUserRoles("4", "fumanchu");
         });
     });
 
     describe("Allowance queries", function () {
         describe("isAllowed", function () {
-            it("Can joed view blogs?", function (done) {
-                var acl = new Acl(backend);
+            it("Can joed view blogs?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed("joed", "blogs", "view", function (err, allow) {
-                    assert.ifError(err);
-                    assert(allow);
-                    done();
-                });
+                assert(await acl.isAllowed("joed", "blogs", "view"));
             });
 
-            it("Can userId=0 view blogs?", function (done) {
-                var acl = new Acl(backend);
+            it("Can userId=0 view blogs?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed(0, "blogs", "view", function (err, allow) {
-                    assert.ifError(err);
-                    assert(allow);
-                    done();
-                });
+                assert(await acl.isAllowed("0", "blogs", "view"));
             });
 
-            it("Can joed view forums?", function (done) {
-                var acl = new Acl(backend);
+            it("Can joed view forums?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed("joed", "forums", "view", function (err, allow) {
-                    assert.ifError(err);
-                    assert(allow);
-                    done();
-                });
+                assert(await acl.isAllowed("joed", "forums", "view"));
             });
 
-            it("Can userId=0 view forums?", function (done) {
-                var acl = new Acl(backend);
+            it("Can userId=0 view forums?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed(0, "forums", "view", function (err, allow) {
-                    assert.ifError(err);
-                    assert(allow);
-                    done();
-                });
+                assert(await acl.isAllowed("0", "forums", "view"));
             });
 
-            it("Can joed edit forums?", function (done) {
-                var acl = new Acl(backend);
+            it("Can joed edit forums?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed("joed", "forums", "edit", function (err, allow) {
-                    assert.ifError(err);
-                    assert(!allow);
-                    done();
-                });
+                assert(!(await acl.isAllowed("joed", "forums", "edit")));
             });
 
-            it("Can userId=0 edit forums?", function (done) {
-                var acl = new Acl(backend);
+            it("Can userId=0 edit forums?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed(0, "forums", "edit", function (err, allow) {
-                    assert.ifError(err);
-                    assert(!allow);
-                    done();
-                });
+                assert(!(await acl.isAllowed("0", "forums", "edit")));
             });
 
-            it("Can jsmith edit forums?", function (done) {
-                var acl = new Acl(backend);
+            it("Can jsmith edit forums?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed("jsmith", "forums", "edit", function (err, allow) {
-                    assert.ifError(err);
-                    assert(!allow);
-                    done();
-                });
+                assert(!(await acl.isAllowed("jsmith", "forums", "edit")));
             });
 
-            it("Can jsmith edit forums?", function (done) {
-                var acl = new Acl(backend);
+            it("Can jsmith edit forums?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed("jsmith", "forums", "edit", function (err, allow) {
-                    assert.ifError(err);
-                    assert(!allow);
-                    done();
-                });
+                assert(!(await acl.isAllowed("jsmith", "forums", "edit")));
             });
 
-            it("Can jsmith edit blogs?", function (done) {
-                var acl = new Acl(backend);
+            it("Can jsmith edit blogs?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed("jsmith", "blogs", "edit", function (err, allow) {
-                    assert.ifError(err);
-                    assert(allow);
-                    done();
-                });
+                assert(await acl.isAllowed("jsmith", "blogs", "edit"));
             });
 
-            it("Can test@test.com edit forums?", function (done) {
-                var acl = new Acl(backend);
+            it("Can test@test.com edit forums?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed("test@test.com", "forums", "edit", function (err, allow) {
-                    assert.ifError(err);
-                    assert(!allow);
-                    done();
-                });
+                assert(!(await acl.isAllowed("test@test.com", "forums", "edit")));
             });
 
-            it("Can test@test.com edit forums?", function (done) {
-                var acl = new Acl(backend);
+            it("Can test@test.com edit forums?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed("test@test.com", "forums", "edit", function (err, allow) {
-                    assert.ifError(err);
-                    assert(!allow);
-                    done();
-                });
+                assert(!(await acl.isAllowed("test@test.com", "forums", "edit")));
             });
 
-            it("Can test@test.com edit blogs?", function (done) {
-                var acl = new Acl(backend);
+            it("Can test@test.com edit blogs?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed("test@test.com", "blogs", "edit", function (err, allow) {
-                    assert.ifError(err);
-                    assert(allow);
-                    done();
-                });
+                assert(await acl.isAllowed("test@test.com", "blogs", "edit"));
             });
 
-            it("Can userId=1 edit blogs?", function (done) {
-                var acl = new Acl(backend);
+            it("Can userId=1 edit blogs?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed(1, "blogs", "edit", function (err, allow) {
-                    assert.ifError(err);
-                    assert(allow);
-                    done();
-                });
+                assert(await acl.isAllowed("1", "blogs", "edit"));
             });
 
-            it("Can jsmith edit, delete and clone blogs?", function (done) {
-                var acl = new Acl(backend);
+            it("Can jsmith edit, delete and clone blogs?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed("jsmith", "blogs", ["edit", "view", "clone"], function (err, allow) {
-                    assert.ifError(err);
-                    assert(!allow);
-                    done();
-                });
+                assert(!(await acl.isAllowed("jsmith", "blogs", ["edit", "view", "clone"])));
             });
 
-            it("Can test@test.com edit, delete and clone blogs?", function (done) {
-                var acl = new Acl(backend);
+            it("Can test@test.com edit, delete and clone blogs?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed("test@test.com", "blogs", ["edit", "view", "clone"], function (err, allow) {
-                    assert.ifError(err);
-                    assert(!allow);
-                    done();
-                });
+                assert(!(await acl.isAllowed("test@test.com", "blogs", ["edit", "view", "clone"])));
             });
 
-            it("Can userId=1 edit, delete and clone blogs?", function (done) {
-                var acl = new Acl(backend);
+            it("Can userId=1 edit, delete and clone blogs?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed(1, "blogs", ["edit", "view", "clone"], function (err, allow) {
-                    assert.ifError(err);
-                    assert(!allow);
-                    done();
-                });
+                assert(!(await acl.isAllowed("1", "blogs", ["edit", "view", "clone"])));
             });
 
-            it("Can jsmith edit, clone blogs?", function (done) {
-                var acl = new Acl(backend);
+            it("Can jsmith edit, clone blogs?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed("jsmith", "blogs", ["edit", "clone"], function (err, allow) {
-                    assert.ifError(err);
-                    assert(!allow);
-                    done();
-                });
+                assert(!(await acl.isAllowed("jsmith", "blogs", ["edit", "clone"])));
             });
 
-            it("Can test@test.com edit, clone blogs?", function (done) {
-                var acl = new Acl(backend);
+            it("Can test@test.com edit, clone blogs?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed("test@test.com", "blogs", ["edit", "clone"], function (err, allow) {
-                    assert.ifError(err);
-                    assert(!allow);
-                    done();
-                });
+                assert(!(await acl.isAllowed("test@test.com", "blogs", ["edit", "clone"])));
             });
 
-            it("Can userId=1 edit, delete blogs?", function (done) {
-                var acl = new Acl(backend);
+            it("Can userId=1 edit, delete blogs?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed(1, "blogs", ["edit", "clone"], function (err, allow) {
-                    assert.ifError(err);
-                    assert(!allow);
-                    done();
-                });
+                assert(!(await acl.isAllowed("1", "blogs", ["edit", "clone"])));
             });
 
-            it("Can james add blogs?", function (done) {
-                var acl = new Acl(backend);
+            it("Can james add blogs?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed("james", "blogs", "add", function (err, allow) {
-                    assert.ifError(err);
-                    assert(!allow);
-                    done();
-                });
+                assert(!(await acl.isAllowed("james", "blogs", "add")));
             });
 
-            it("Can userId=3 add blogs?", function (done) {
-                var acl = new Acl(backend);
+            it("Can userId=3 add blogs?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed(3, "blogs", "add", function (err, allow) {
-                    assert.ifError(err);
-                    assert(!allow);
-                    done();
-                });
+                assert(!(await acl.isAllowed("3", "blogs", "add")));
             });
 
-            it("Can suzanne add blogs?", function (done) {
-                var acl = new Acl(backend);
+            it("Can suzanne add blogs?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed("suzanne", "blogs", "add", function (err, allow) {
-                    assert.ifError(err);
-                    assert(!allow);
-                    done();
-                });
+                assert(!(await acl.isAllowed("suzanne", "blogs", "add")));
             });
 
-            it("Can userId=4 add blogs?", function (done) {
-                var acl = new Acl(backend);
+            it("Can userId=4 add blogs?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed(4, "blogs", "add", function (err, allow) {
-                    assert.ifError(err);
-                    assert(!allow);
-                    done();
-                });
+                assert(!(await acl.isAllowed("4", "blogs", "add")));
             });
 
-            it("Can suzanne get blogs?", function (done) {
-                var acl = new Acl(backend);
+            it("Can suzanne get blogs?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed("suzanne", "blogs", "get", function (err, allow) {
-                    assert.ifError(err);
-                    assert(allow);
-                    done();
-                });
+                assert(await acl.isAllowed("suzanne", "blogs", "get"));
             });
 
-            it("Can userId=4 get blogs?", function (done) {
-                var acl = new Acl(backend);
+            it("Can userId=4 get blogs?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed(4, "blogs", "get", function (err, allow) {
-                    assert.ifError(err);
-                    assert(allow);
-                    done();
-                });
+                assert(await acl.isAllowed("4", "blogs", "get"));
             });
 
-            it("Can suzanne delete and put news?", function (done) {
-                var acl = new Acl(backend);
+            it("Can suzanne delete and put news?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed("suzanne", "news", ["put", "delete"], function (err, allow) {
-                    assert.ifError(err);
-                    assert(allow);
-                    done();
-                });
+                assert(await acl.isAllowed("suzanne", "news", ["put", "delete"]));
             });
 
-            it("Can userId=4 delete and put news?", function (done) {
-                var acl = new Acl(backend);
+            it("Can userId=4 delete and put news?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed(4, "news", ["put", "delete"], function (err, allow) {
-                    assert.ifError(err);
-                    assert(allow);
-                    done();
-                });
+                assert(await acl.isAllowed("4", "news", ["put", "delete"]));
             });
 
-            it("Can suzanne delete and put forums?", function (done) {
-                var acl = new Acl(backend);
+            it("Can suzanne delete and put forums?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed("suzanne", "forums", ["put", "delete"], function (err, allow) {
-                    assert.ifError(err);
-                    assert(allow);
-                    done();
-                });
+                assert(await acl.isAllowed("suzanne", "forums", ["put", "delete"]));
             });
 
-            it("Can userId=4 delete and put forums?", function (done) {
-                var acl = new Acl(backend);
+            it("Can userId=4 delete and put forums?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed(4, "forums", ["put", "delete"], function (err, allow) {
-                    assert.ifError(err);
-                    assert(allow);
-                    done();
-                });
+                assert(await acl.isAllowed("4", "forums", ["put", "delete"]));
             });
 
-            it("Can nobody view news?", function (done) {
-                var acl = new Acl(backend);
+            it("Can nobody view news?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed("nobody", "blogs", "view", function (err, allow) {
-                    assert.ifError(err);
-                    assert(!allow);
-                    done();
-                });
+                assert(!(await acl.isAllowed("nobody", "blogs", "view")));
             });
 
-            it("Can nobody view nothing?", function (done) {
-                var acl = new Acl(backend);
+            it("Can nobody view nothing?", async function () {
+                const acl = new Acl(backend);
 
-                acl.isAllowed("nobody", "nothing", "view", function (err, allow) {
-                    assert.ifError(err);
-                    assert(!allow);
-                    done();
-                });
+                assert(!(await acl.isAllowed("nobody", "nothing", "view")));
             });
         });
 
         describe("allowedPermissions", function () {
-            it("What permissions has james over blogs and forums?", function (done) {
-                var acl = new Acl(backend);
-                acl.allowedPermissions("james", ["blogs", "forums"], function (err, permissions) {
-                    assert.ifError(err);
+            it("What permissions has james over blogs and forums?", async function () {
+                const acl = new Acl(backend);
 
-                    assert.property(permissions, "blogs");
-                    assert.property(permissions, "forums");
+                const permissions = await acl.allowedPermissions("james", ["blogs", "forums"]);
 
-                    assert.include(permissions.blogs, "edit");
-                    assert.include(permissions.blogs, "delete");
-                    assert.include(permissions.blogs, "view");
+                assert(permissions.blogs);
+                assert(permissions.forums);
 
-                    assert(permissions.forums.length === 0);
+                assert(permissions.blogs.includes("edit"));
+                assert(permissions.blogs.includes("delete"));
+                assert(permissions.blogs.includes("view"));
 
-                    done();
-                });
+                assert(permissions.forums.length === 0);
             });
-            it("What permissions has userId=3 over blogs and forums?", function (done) {
-                var acl = new Acl(backend);
-                acl.allowedPermissions(3, ["blogs", "forums"], function (err, permissions) {
-                    assert.ifError(err);
 
-                    assert.property(permissions, "blogs");
-                    assert.property(permissions, "forums");
+            it("What permissions has userId=3 over blogs and forums?", async function () {
+                const acl = new Acl(backend);
 
-                    assert.include(permissions.blogs, "edit");
-                    assert.include(permissions.blogs, "delete");
-                    assert.include(permissions.blogs, "view");
+                const permissions = await acl.allowedPermissions("3", ["blogs", "forums"]);
 
-                    assert(permissions.forums.length === 0);
+                assert(permissions.blogs);
+                assert(permissions.forums);
 
-                    done();
-                });
+                assert(permissions.blogs.includes("edit"));
+                assert(permissions.blogs.includes("delete"));
+                assert(permissions.blogs.includes("view"));
+
+                assert(permissions.forums.length === 0);
             });
-            it("What permissions has nonsenseUser over blogs and forums?", function (done) {
-                var acl = new Acl(backend);
-                acl.allowedPermissions("nonsense", ["blogs", "forums"], function (err, permissions) {
-                    assert.ifError(err);
 
-                    assert(permissions.forums.length === 0);
-                    assert(permissions.blogs.length === 0);
+            it("What permissions has nonsenseUser over blogs and forums?", async function () {
+                const acl = new Acl(backend);
 
-                    done();
-                });
+                const permissions = await acl.allowedPermissions("nonsense", ["blogs", "forums"]);
+
+                assert(permissions.forums.length === 0);
+                assert(permissions.blogs.length === 0);
             });
         });
     });
 
     describe("whatResources queries", function () {
-        it('What resources have "bar" some rights on?', function (done) {
-            var acl = new Acl(backend);
+        it('What resources have "bar" some rights on?', async function () {
+            const acl = new Acl(backend);
 
-            acl.whatResources("bar", function (err, resources) {
-                assert.isNull(err);
-                assert.include(resources.blogs, "view");
-                assert.include(resources.blogs, "delete");
-                done();
-            });
+            const resources = await acl.whatResources("bar");
+
+            assert(resources.blogs.includes("view"));
+            assert(resources.blogs.includes("delete"));
         });
 
-        it('What resources have "bar" view rights on?', function (done) {
-            var acl = new Acl(backend);
+        it('What resources have "bar" view rights on?', async function () {
+            const acl = new Acl(backend);
 
-            acl.whatResources("bar", "view", function (err, resources) {
-                assert.isNull(err);
-                assert.include(resources, "blogs");
-                done();
-            });
+            const resources = await acl.whatResources("bar", "view");
+
+            assert(resources.includes("blogs"));
         });
 
-        it('What resources have "fumanchu" some rights on?', function (done) {
-            var acl = new Acl(backend);
+        it('What resources have "fumanchu" some rights on?', async function () {
+            const acl = new Acl(backend);
 
-            acl.whatResources("fumanchu", function (err, resources) {
-                assert.isNull(err);
-                assert.include(resources.blogs, "get");
-                assert.include(resources.forums, "delete");
-                assert.include(resources.forums, "get");
-                assert.include(resources.forums, "put");
-                assert.include(resources.news, "delete");
-                assert.include(resources.news, "get");
-                assert.include(resources.news, "put");
-                assert.include(resources["/path/file/file1.txt"], "delete");
-                assert.include(resources["/path/file/file1.txt"], "get");
-                assert.include(resources["/path/file/file1.txt"], "put");
-                assert.include(resources["/path/file/file2.txt"], "delete");
-                assert.include(resources["/path/file/file2.txt"], "get");
-                assert.include(resources["/path/file/file2.txt"], "put");
-                done();
-            });
+            const resources = await acl.whatResources("fumanchu");
+
+            assert(resources.blogs.includes("get"));
+            assert(resources.forums.includes("delete"));
+            assert(resources.forums.includes("get"));
+            assert(resources.forums.includes("put"));
+            assert(resources.news.includes("delete"));
+            assert(resources.news.includes("get"));
+            assert(resources.news.includes("put"));
+            assert(resources["/path/file/file1.txt"].includes("delete"));
+            assert(resources["/path/file/file1.txt"].includes("get"));
+            assert(resources["/path/file/file1.txt"].includes("put"));
+            assert(resources["/path/file/file2.txt"].includes("delete"));
+            assert(resources["/path/file/file2.txt"].includes("get"));
+            assert(resources["/path/file/file2.txt"].includes("put"));
         });
 
-        it('What resources have "baz" some rights on?', function (done) {
-            var acl = new Acl(backend);
+        it('What resources have "baz" some rights on?', async function () {
+            const acl = new Acl(backend);
 
-            acl.whatResources("baz", function (err, resources) {
-                assert.isNull(err);
-                assert.include(resources.blogs, "view");
-                assert.include(resources.blogs, "delete");
-                assert.include(resources.blogs, "edit");
-                done();
-            });
+            const resources = await acl.whatResources("baz");
+
+            assert(resources.blogs.includes("view"));
+            assert(resources.blogs.includes("delete"));
+            assert(resources.blogs.includes("edit"));
         });
     });
 
     describe("removeAllow", function () {
-        it("Remove get permissions from resources blogs and forums from role fumanchu", function (done) {
-            var acl = new Acl(backend);
-            acl.removeAllow("fumanchu", ["blogs", "forums"], "get", function (err) {
-                assert.ifError(err);
-                done();
-            });
+        it("Remove get permissions from resources blogs and forums from role fumanchu", async function () {
+            const acl = new Acl(backend);
+
+            await acl.removeAllow("fumanchu", ["blogs", "forums"], "get");
         });
 
-        it("Remove delete and put permissions from resource news from role fumanchu", function (done) {
-            var acl = new Acl(backend);
-            acl.removeAllow("fumanchu", "news", "delete", function (err) {
-                assert.ifError(err);
-                done();
-            });
+        it("Remove delete and put permissions from resource news from role fumanchu", async function () {
+            const acl = new Acl(backend);
+
+            await acl.removeAllow("fumanchu", "news", "delete");
         });
 
-        it("Remove view permissions from resource blogs from role bar", function (done) {
-            var acl = new Acl(backend);
-            acl.removeAllow("bar", "blogs", "view", function (err) {
-                assert.ifError(err);
-                done();
-            });
+        it("Remove view permissions from resource blogs from role bar", async function () {
+            const acl = new Acl(backend);
+
+            await acl.removeAllow("bar", "blogs", "view");
         });
     });
 
     describe("See if permissions were removed", function () {
-        it('What resources have "fumanchu" some rights on after removed some of them?', function (done) {
-            var acl = new Acl(backend);
-            acl.whatResources("fumanchu", function (err, resources) {
-                assert.isNull(err);
+        it('What resources have "fumanchu" some rights on after removed some of them?', async function () {
+            const acl = new Acl(backend);
 
-                assert.isFalse("blogs" in resources);
-                assert.property(resources, "news");
-                assert.include(resources.news, "get");
-                assert.include(resources.news, "put");
-                assert.isFalse("delete" in resources.news);
+            const resources = await acl.whatResources("fumanchu");
 
-                assert.property(resources, "forums");
-                assert.include(resources.forums, "delete");
-                assert.include(resources.forums, "put");
-                done();
-            });
+            assert(!("blogs" in resources));
+            assert(resources.news);
+            assert(resources.news.includes("get"));
+            assert(resources.news.includes("put"));
+            assert(!("delete" in resources.news));
+
+            assert(resources.forums);
+            assert(resources.forums.includes("delete"));
+            assert(resources.forums.includes("put"));
         });
     });
 
     describe("removeRole", function () {
-        it("Remove role fumanchu", function (done) {
-            var acl = new Acl(backend);
-            acl.removeRole("fumanchu", function (err) {
-                assert.ifError(err);
-                done();
-            });
+        it("Remove role fumanchu", async function () {
+            const acl = new Acl(backend);
+
+            await acl.removeRole("fumanchu");
         });
 
-        it("Remove role member", function (done) {
-            var acl = new Acl(backend);
-            acl.removeRole("member", function (err) {
-                assert.ifError(err);
-                done();
-            });
+        it("Remove role member", async function () {
+            const acl = new Acl(backend);
+
+            await acl.removeRole("member");
         });
 
-        it("Remove role foo", function (done) {
-            var acl = new Acl(backend);
-            acl.removeRole("foo", function (err) {
-                assert.ifError(err);
-                done();
-            });
+        it("Remove role foo", async function () {
+            const acl = new Acl(backend);
+
+            await acl.removeRole("foo");
         });
     });
 
     describe("Was role removed?", function () {
-        it('What resources have "fumanchu" some rights on after removed?', function (done) {
-            var acl = new Acl(backend);
-            acl.whatResources("fumanchu", function (err, resources) {
-                assert.ifError(err);
-                assert(Object.keys(resources).length === 0);
-                done();
-            });
+        it('What resources have "fumanchu" some rights on after removed?', async function () {
+            const acl = new Acl(backend);
+
+            const resources = await acl.whatResources("fumanchu");
+
+            assert(Object.keys(resources).length === 0);
         });
 
-        it('What resources have "member" some rights on after removed?', function (done) {
-            var acl = new Acl(backend);
-            acl.whatResources("member", function (err, resources) {
-                assert.ifError(err);
-                assert(Object.keys(resources).length === 0);
-                done();
-            });
+        it('What resources have "member" some rights on after removed?', async function () {
+            const acl = new Acl(backend);
+
+            const resources = await acl.whatResources("member");
+
+            assert(Object.keys(resources).length === 0);
         });
 
         describe("allowed permissions", function () {
-            it("What permissions has jsmith over blogs and forums?", function (done) {
-                var acl = new Acl(backend);
-                acl.allowedPermissions("jsmith", ["blogs", "forums"], function (err, permissions) {
-                    assert.ifError(err);
-                    assert(permissions.blogs.length === 0);
-                    assert(permissions.forums.length === 0);
-                    done();
-                });
+            it("What permissions has jsmith over blogs and forums?", async function () {
+                const acl = new Acl(backend);
+
+                const permissions = await acl.allowedPermissions("jsmith", ["blogs", "forums"]);
+
+                assert(permissions.blogs.length === 0);
+                assert(permissions.forums.length === 0);
             });
 
-            it("What permissions has test@test.com over blogs and forums?", function (done) {
-                var acl = new Acl(backend);
-                acl.allowedPermissions("test@test.com", ["blogs", "forums"], function (err, permissions) {
-                    assert.ifError(err);
-                    assert(permissions.blogs.length === 0);
-                    assert(permissions.forums.length === 0);
-                    done();
-                });
+            it("What permissions has test@test.com over blogs and forums?", async function () {
+                const acl = new Acl(backend);
+
+                const permissions = await acl.allowedPermissions("test@test.com", ["blogs", "forums"]);
+
+                assert(permissions.blogs.length === 0);
+                assert(permissions.forums.length === 0);
             });
 
-            it("What permissions has james over blogs?", function (done) {
-                var acl = new Acl(backend);
-                acl.allowedPermissions("james", "blogs", function (err, permissions) {
-                    assert.ifError(err);
-                    assert.property(permissions, "blogs");
-                    assert.include(permissions.blogs, "delete");
-                    done();
-                });
+            it("What permissions has james over blogs?", async function () {
+                const acl = new Acl(backend);
+
+                const permissions = await acl.allowedPermissions("james", "blogs");
+
+                assert(permissions.blogs);
+                assert(permissions.blogs.includes("delete"));
             });
         });
     });
 
     describe("RoleParentRemoval", function () {
-        before(function (done) {
-            var acl = new Acl(backend);
-            acl.allow("parent1", "x", "read1")
-                .then(function () {
-                    return acl.allow("parent2", "x", "read2");
-                })
-                .then(function () {
-                    return acl.allow("parent3", "x", "read3");
-                })
-                .then(function () {
-                    return acl.allow("parent4", "x", "read4");
-                })
-                .then(function () {
-                    return acl.allow("parent5", "x", "read5");
-                })
-                .then(function () {
-                    return acl.addRoleParents("child", ["parent1", "parent2", "parent3", "parent4", "parent5"]);
-                })
-                .done(done, done);
+        before(async function () {
+            const acl = new Acl(backend);
+
+            await acl.allow("parent1", "x", "read1");
+            await acl.allow("parent2", "x", "read2");
+            await acl.allow("parent3", "x", "read3");
+            await acl.allow("parent4", "x", "read4");
+            await acl.allow("parent5", "x", "read5");
+
+            await acl.addRoleParents("child", ["parent1", "parent2", "parent3", "parent4", "parent5"]);
         });
 
-        var acl;
+        let acl;
 
         beforeEach(function () {
             acl = new Acl(backend);
         });
 
-        it("Environment check", function (done) {
-            acl.whatResources("child")
-                .then(function (resources) {
-                    assert.lengthOf(resources.x, 5);
-                    assert.include(resources.x, "read1");
-                    assert.include(resources.x, "read2");
-                    assert.include(resources.x, "read3");
-                    assert.include(resources.x, "read4");
-                    assert.include(resources.x, "read5");
-                })
-                .done(done, done);
+        it("Environment check", async function () {
+            const resources = await acl.whatResources("child");
+
+            assert.equal(resources.x.length, 5);
+            assert(resources.x.includes("read1"));
+            assert(resources.x.includes("read2"));
+            assert(resources.x.includes("read3"));
+            assert(resources.x.includes("read4"));
+            assert(resources.x.includes("read5"));
         });
 
-        it("Operation uses a callback when removing a specific parent role", function (done) {
-            acl.removeRoleParents("child", "parentX", function (err) {
-                assert.ifError(err);
-                done();
-            });
+        it("Operation removing a specific parent role", async function () {
+            await acl.removeRoleParents("child", "parentX");
         });
 
-        it("Operation uses a callback when removing multiple specific parent roles", function (done) {
-            acl.removeRoleParents("child", ["parentX", "parentY"], function (err) {
-                assert.ifError(err);
-                done();
-            });
+        it("Operation removing multiple specific parent roles", async function () {
+            await acl.removeRoleParents("child", ["parentX", "parentY"]);
         });
 
-        it('Remove parent role "parentX" from role "child"', function (done) {
-            acl.removeRoleParents("child", "parentX")
-                .then(function () {
-                    return acl.whatResources("child");
-                })
-                .then(function (resources) {
-                    assert.lengthOf(resources.x, 5);
-                    assert.include(resources.x, "read1");
-                    assert.include(resources.x, "read2");
-                    assert.include(resources.x, "read3");
-                    assert.include(resources.x, "read4");
-                    assert.include(resources.x, "read5");
-                })
-                .done(done, done);
+        it('Remove parent role "parentX" from role "child"', async function () {
+            await acl.removeRoleParents("child", "parentX");
+
+            let resources = await acl.whatResources("child");
+
+            assert.equal(resources.x.length, 5);
+            assert(resources.x.includes("read1"));
+            assert(resources.x.includes("read2"));
+            assert(resources.x.includes("read3"));
+            assert(resources.x.includes("read4"));
+            assert(resources.x.includes("read5"));
         });
 
-        it('Remove parent role "parent1" from role "child"', function (done) {
-            acl.removeRoleParents("child", "parent1")
-                .then(function () {
-                    return acl.whatResources("child");
-                })
-                .then(function (resources) {
-                    assert.lengthOf(resources.x, 4);
-                    assert.include(resources.x, "read2");
-                    assert.include(resources.x, "read3");
-                    assert.include(resources.x, "read4");
-                    assert.include(resources.x, "read5");
-                })
-                .done(done, done);
+        it('Remove parent role "parent1" from role "child"', async function () {
+            await acl.removeRoleParents("child", "parent1");
+
+            let resources = await acl.whatResources("child");
+
+            assert.equal(resources.x.length, 4);
+            assert(resources.x.includes("read2"));
+            assert(resources.x.includes("read3"));
+            assert(resources.x.includes("read4"));
+            assert(resources.x.includes("read5"));
         });
 
-        it('Remove parent roles "parent2" & "parent3" from role "child"', function (done) {
-            acl.removeRoleParents("child", ["parent2", "parent3"])
-                .then(function () {
-                    return acl.whatResources("child");
-                })
-                .then(function (resources) {
-                    assert.lengthOf(resources.x, 2);
-                    assert.include(resources.x, "read4");
-                    assert.include(resources.x, "read5");
-                })
-                .done(done, done);
+        it('Remove parent roles "parent2" & "parent3" from role "child"', async function () {
+            await acl.removeRoleParents("child", ["parent2", "parent3"]);
+
+            let resources = await acl.whatResources("child");
+
+            assert.equal(resources.x.length, 2);
+            assert(resources.x.includes("read4"));
+            assert(resources.x.includes("read5"));
         });
 
-        it('Remove all parent roles from role "child"', function (done) {
-            acl.removeRoleParents("child")
-                .then(function () {
-                    return acl.whatResources("child");
-                })
-                .then(function (resources) {
-                    assert.notProperty(resources, "x");
-                })
-                .done(done, done);
+        it('Remove all parent roles from role "child"', async function () {
+            await acl.removeRoleParents("child");
+
+            let resources = await acl.whatResources("child");
+
+            assert(!resources.x);
         });
 
-        it('Remove all parent roles from role "child" with no parents', function (done) {
-            acl.removeRoleParents("child")
-                .then(function () {
-                    return acl.whatResources("child");
-                })
-                .then(function (resources) {
-                    assert.notProperty(resources, "x");
-                })
-                .done(done, done);
+        it('Remove all parent roles from role "child" with no parents', async function () {
+            await acl.removeRoleParents("child");
+
+            let resources = await acl.whatResources("child");
+
+            assert(!resources.x);
         });
 
-        it('Remove parent role "parent1" from role "child" with no parents', function (done) {
-            acl.removeRoleParents("child", "parent1")
-                .then(function () {
-                    return acl.whatResources("child");
-                })
-                .then(function (resources) {
-                    assert.notProperty(resources, "x");
-                })
-                .done(done, done);
+        it('Remove parent role "parent1" from role "child" with no parents', async function () {
+            await acl.removeRoleParents("child", "parent1");
+
+            let resources = await acl.whatResources("child");
+
+            assert(!resources.x);
         });
 
-        it("Operation uses a callback when removing all parent roles", function (done) {
-            acl.removeRoleParents("child", function (err) {
-                assert.ifError(err);
-                done();
-            });
+        it("Operation removing all parent roles", async function () {
+            await acl.removeRoleParents("child");
         });
     });
 
     describe("removeResource", function () {
-        it("Remove resource blogs", function (done) {
-            var acl = new Acl(backend);
-            acl.removeResource("blogs", function (err) {
-                assert.ifError(err);
-                done();
-            });
+        it("Remove resource blogs", async function () {
+            const acl = new Acl(backend);
+
+            await acl.removeResource("blogs");
         });
 
-        it("Remove resource users", function (done) {
-            var acl = new Acl(backend);
-            acl.removeResource("users", function (err) {
-                assert.ifError(err);
-                done();
-            });
+        it("Remove resource users", async function () {
+            const acl = new Acl(backend);
+
+            await acl.removeResource("users");
         });
     });
 
     describe("allowedPermissions", function () {
-        it("What permissions has james over blogs?", function (done) {
-            var acl = new Acl(backend);
-            acl.allowedPermissions("james", "blogs", function (err, permissions) {
-                assert.isNull(err);
-                assert.property(permissions, "blogs");
-                assert(permissions.blogs.length === 0);
-                done();
-            });
+        it("What permissions has james over blogs?", async function () {
+            const acl = new Acl(backend);
+
+            const permissions = await acl.allowedPermissions("james", "blogs");
+
+            assert(permissions.blogs);
+            assert(permissions.blogs.length === 0);
         });
-        it("What permissions has userId=4 over blogs?", function (done) {
-            var acl = new Acl(backend);
-            acl.allowedPermissions(4, "blogs").then(function (permissions) {
-                assert.property(permissions, "blogs");
-                assert(permissions.blogs.length === 0);
-                done();
-            }, done);
+
+        it("What permissions has userId=4 over blogs?", async function () {
+            const acl = new Acl(backend);
+
+            const permissions = await acl.allowedPermissions("4", "blogs");
+
+            assert(permissions.blogs);
+            assert(permissions.blogs.length === 0);
         });
     });
 
     describe("whatResources", function () {
-        it('What resources have "baz" some rights on after removed blogs?', function (done) {
-            var acl = new Acl(backend);
-            acl.whatResources("baz", function (err, resources) {
-                assert.ifError(err);
-                assert.isObject(resources);
-                assert(Object.keys(resources).length === 0);
+        it('What resources have "baz" some rights on after removed blogs?', async function () {
+            const acl = new Acl(backend);
 
-                done();
-            });
+            const resources = await acl.whatResources("baz");
+
+            assert(_.isPlainObject(resources));
+            assert(Object.keys(resources).length === 0);
         });
 
-        it('What resources have "admin" some rights on after removed users resource?', function (done) {
-            var acl = new Acl(backend);
-            acl.whatResources("admin", function (err, resources) {
-                assert.ifError(err);
-                assert.isFalse("users" in resources);
-                assert.isFalse("blogs" in resources);
+        it('What resources have "admin" some rights on after removed users resource?', async function () {
+            const acl = new Acl(backend);
 
-                done();
-            });
+            const resources = await acl.whatResources("admin");
+
+            assert(!("users" in resources));
+            assert(!("blogs" in resources));
         });
     });
 
     describe("Remove user roles", function () {
-        it("Remove role guest from joed", function (done) {
-            var acl = new Acl(backend);
-            acl.removeUserRoles("joed", "guest", function (err) {
-                assert.ifError(err);
-                done();
-            });
+        it("Remove role guest from joed", async function () {
+            const acl = new Acl(backend);
+
+            await acl.removeUserRoles("joed", "guest");
         });
 
-        it("Remove role guest from userId=0", function (done) {
-            var acl = new Acl(backend);
-            acl.removeUserRoles(0, "guest", function (err) {
-                assert.ifError(err);
-                done();
-            });
+        it("Remove role guest from userId=0", async function () {
+            const acl = new Acl(backend);
+
+            await acl.removeUserRoles("0", "guest");
         });
-        it("Remove role admin from harry", function (done) {
-            var acl = new Acl(backend);
-            acl.removeUserRoles("harry", "admin", function (err) {
-                assert.ifError(err);
-                done();
-            });
+        it("Remove role admin from harry", async function () {
+            const acl = new Acl(backend);
+
+            await acl.removeUserRoles("harry", "admin");
         });
 
-        it("Remove role admin from userId=2", function (done) {
-            var acl = new Acl(backend);
-            acl.removeUserRoles(2, "admin", function (err) {
-                assert.ifError(err);
-                done();
-            });
+        it("Remove role admin from userId=2", async function () {
+            const acl = new Acl(backend);
+
+            await acl.removeUserRoles("2", "admin");
         });
     });
 
     describe("Were roles removed?", function () {
-        it("What permissions has harry over forums and blogs?", function (done) {
-            var acl = new Acl(backend);
-            acl.allowedPermissions("harry", ["forums", "blogs"], function (err, permissions) {
-                assert.ifError(err);
-                assert.isObject(permissions);
-                assert(permissions.forums.length === 0);
-                done();
-            });
-            it("What permissions has userId=2 over forums and blogs?", function (done) {
-                var acl = new Acl(backend);
-                acl.allowedPermissions(2, ["forums", "blogs"], function (err, permissions) {
-                    assert.ifError(err);
-                    assert.isObject(permissions);
-                    assert(permissions.forums.length === 0);
-                    done();
-                });
-            });
+        it("What permissions has harry over forums and blogs?", async function () {
+            const acl = new Acl(backend);
+
+            const permissions = await acl.allowedPermissions("harry", ["forums", "blogs"]);
+
+            assert(_.isPlainObject(permissions));
+            assert(permissions.forums.length === 0);
+        });
+
+        it("What permissions has userId=2 over forums and blogs?", async function () {
+            const acl = new Acl(backend);
+
+            const permissions = await acl.allowedPermissions("2", ["forums", "blogs"]);
+
+            assert(_.isPlainObject(permissions));
+            assert(permissions.forums.length === 0);
         });
     });
 
     describe("Github issue #55: removeAllow is removing all permissions.", function () {
-        it("Add roles/resources/permissions", function () {
-            var acl = new Acl(backend);
+        it("Add roles/resources/permissions", async function () {
+            const acl = new Acl(backend);
 
-            return acl
-                .addUserRoles("jannette", "member")
-                .then(function () {
-                    return acl.allow("member", "blogs", ["view", "update"]);
-                })
-                .then(function () {
-                    return acl.isAllowed("jannette", "blogs", "view", function (err, allowed) {
-                        expect(allowed).to.be.eql(true);
-                    });
-                })
-                .then(function () {
-                    return acl.removeAllow("member", "blogs", "update");
-                })
-                .then(function () {
-                    return acl.isAllowed("jannette", "blogs", "view", function (err, allowed) {
-                        expect(allowed).to.be.eql(true);
-                    });
-                })
-                .then(function () {
-                    return acl.isAllowed("jannette", "blogs", "update", function (err, allowed) {
-                        expect(allowed).to.be.eql(false);
-                    });
-                })
-                .then(function () {
-                    return acl.removeAllow("member", "blogs", "view");
-                })
-                .then(function () {
-                    return acl.isAllowed("jannette", "blogs", "view", function (err, allowed) {
-                        expect(allowed).to.be.eql(false);
-                    });
-                });
+            await acl.addUserRoles("jannette", "member");
+            await acl.allow("member", "blogs", ["view", "update"]);
+            assert(await acl.isAllowed("jannette", "blogs", "view"));
+
+            await acl.removeAllow("member", "blogs", "update");
+            assert(await acl.isAllowed("jannette", "blogs", "view"));
+
+            assert(!(await acl.isAllowed("jannette", "blogs", "update")));
+
+            await acl.removeAllow("member", "blogs", "view");
+            assert(!(await acl.isAllowed("jannette", "blogs", "view")));
         });
     });
 
     describe('Github issue #32: Removing a role removes the entire "allows" document.', function () {
-        it("Add roles/resources/permissions", function (done) {
-            var acl = new Acl(backend);
+        it("Add roles/resources/permissions", async function () {
+            const acl = new Acl(backend);
 
-            acl.allow(["role1", "role2", "role3"], ["res1", "res2", "res3"], ["perm1", "perm2", "perm3"], function (
-                err
-            ) {
-                assert.ifError(err);
-                done();
-            });
+            await acl.allow(["role1", "role2", "role3"], ["res1", "res2", "res3"], ["perm1", "perm2", "perm3"]);
         });
 
-        it("Add user roles and parent roles", function (done) {
-            var acl = new Acl(backend);
+        it("Add user roles and parent roles", async function () {
+            const acl = new Acl(backend);
 
-            acl.addUserRoles("user1", "role1", function (err) {
-                assert.ifError(err);
+            await acl.addUserRoles("user1", "role1");
 
-                acl.addRoleParents("role1", "parentRole1", function (err) {
-                    assert.ifError(err);
-                    done();
-                });
-            });
+            await acl.addRoleParents("role1", "parentRole1");
         });
 
-        it("Add user roles and parent roles", function (done) {
-            var acl = new Acl(backend);
+        it("Add user roles and parent roles", async function () {
+            const acl = new Acl(backend);
 
-            acl.addUserRoles(1, "role1", function (err) {
-                assert.ifError(err);
+            await acl.addUserRoles("1", "role1");
 
-                acl.addRoleParents("role1", "parentRole1", function (err) {
-                    assert.ifError(err);
-                    done();
-                });
-            });
+            await acl.addRoleParents("role1", "parentRole1");
         });
 
-        it("Verify that roles have permissions as assigned", function (done) {
-            var acl = new Acl(backend);
+        it("Verify that roles have permissions as assigned", async function () {
+            const acl = new Acl(backend);
 
-            acl.whatResources("role1", function (err, res) {
-                assert.ifError(err);
-                assert.deepEqual(res.res1.sort(), ["perm1", "perm2", "perm3"]);
+            let res = await acl.whatResources("role1");
+            assert.deepEqual(res.res1.sort(), ["perm1", "perm2", "perm3"]);
 
-                acl.whatResources("role2", function (err, res) {
-                    assert.ifError(err);
-                    assert.deepEqual(res.res1.sort(), ["perm1", "perm2", "perm3"]);
-                    done();
-                });
-            });
+            res = await acl.whatResources("role2");
+            assert.deepEqual(res.res1.sort(), ["perm1", "perm2", "perm3"]);
         });
 
-        it('Remove role "role1"', function (done) {
-            var acl = new Acl(backend);
+        it('Remove role "role1"', async function () {
+            const acl = new Acl(backend);
 
-            acl.removeRole("role1", function (err) {
-                assert.ifError(err);
-                done();
-            });
+            await acl.removeRole("role1");
         });
 
-        it('Verify that "role1" has no permissions and "role2" has permissions intact', function (done) {
-            var acl = new Acl(backend);
+        it('Verify that "role1" has no permissions and "role2" has permissions intact', async function () {
+            const acl = new Acl(backend);
 
-            acl.removeRole("role1", function (err) {
-                assert.ifError(err);
+            await acl.removeRole("role1");
 
-                acl.whatResources("role1", function (err, res) {
-                    assert(Object.keys(res).length === 0);
+            let res = await acl.whatResources("role1");
+            assert(Object.keys(res).length === 0);
 
-                    acl.whatResources("role2", function (err, res) {
-                        assert.deepEqual(res.res1.sort(), ["perm1", "perm2", "perm3"]);
-                        done();
-                    });
-                });
-            });
+            res = await acl.whatResources("role2");
+            assert.deepEqual(res.res1.sort(), ["perm1", "perm2", "perm3"]);
         });
     });
 });

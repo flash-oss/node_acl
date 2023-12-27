@@ -16,41 +16,37 @@ A Redis, MongoDB and In-Memory based backends are provided built-in in the modul
 
 ### Breaking changes comparing to the original `acl`
 
-* The backend constructors take options object instead of multiple argument.
+- The backend constructors take options object instead of multiple argument.
 
 Original `acl`:
+
 ```js
-new ACL.mongodbBackend(db, prefix, useSingle, useRawCollectionNames)
-new ACL.redisBackend(redis, prefix)
+new ACL.mongodbBackend(db, prefix, useSingle, useRawCollectionNames);
+new ACL.redisBackend(redis, prefix);
 ```
 
 New `acl2`:
+
 ```js
 new ACL.mongodbBackend({ client, db, prefix = "acl_", useSingle, useRawCollectionNames })
 new ACL.redisBackend({ redis, prefix = "acl_" })
 ```
 
-* The new default `"acl_"` prefix for both Redis and MongoDB.
+- The new default `"acl_"` prefix for both Redis and MongoDB.
 
-* The `mongodb` dependency upgraded from v2 to the latest v3 - v4.
-
-* Both `mongodb` and `redis` dependencies moved to `devDependencies`. You have to install them to your project separately.
-
-* The minimal supported nodejs version was `0.10`, but became the current LTS `12`.
-
-* The first published version of `acl2` is `1.0` to be more SemVer compliant.
+- Maintained and modern code infrastructure.
 
 ### Other notable changes comparing to the original `acl`
 
-* ES6
-* ESLint
-* Prettier
-* Internally use more promises, fewer callbacks for better stack traces
-* Upgraded all possible dependencies
-* Made unit test debuggable, split them by backend type
-* MongoDB backend accepts either `client` or `db` [objects](https://github.com/mongodb/node-mongodb-native/blob/3.0/CHANGES_3.0.0.md)
-* Removed all possible warnings
-* Run CI tests using multiple MongoDB versions.
+- ES6
+- ESLint
+- Prettier
+- Promises only, no callbacks
+- Upgraded all possible dependencies
+- Made unit test debuggable, split them by backend type
+- MongoDB backend accepts either `client` or `db` [objects](https://github.com/mongodb/node-mongodb-native/blob/3.0/CHANGES_3.0.0.md)
+- Removed all possible warnings
+- Run CI tests using multiple MongoDB versions.
 
 ## Features
 
@@ -102,10 +98,10 @@ npm install redis
 Create your acl module by requiring it and instantiating it with a valid backend instance:
 
 ```javascript
-var ACL = require("acl2");
+const ACL = require("acl2");
 
 // Using Redis backend
-acl = new ACL(new ACL.redisBackend({ client: redisClient }));
+acl = new ACL(new ACL.redisBackend({ redis: redisClient }));
 
 // Or Using the memory backend
 acl = new ACL(new ACL.memoryBackend());
@@ -116,48 +112,47 @@ acl = new ACL(new ACL.mongodbBackend({ client: mongoClient }));
 
 See below for full list of backend constructor arguments.
 
-All the following functions return a promise or optionally take a callback with
-an err parameter as last parameter. We omit them in the examples for simplicity.
+All the following functions return a promise.
 
 Create roles implicitly by giving them permissions:
 
 ```javascript
 // guest is allowed to view blogs
-acl.allow("guest", "blogs", "view");
+await acl.allow("guest", "blogs", "view");
 
 // allow function accepts arrays as any parameter
-acl.allow("member", "blogs", ["edit", "view", "delete"]);
+await acl.allow("member", "blogs", ["edit", "view", "delete"]);
 ```
 
 Users are likewise created implicitly by assigning them roles:
 
 ```javascript
-acl.addUserRoles("joed", "guest");
+await acl.addUserRoles("joed", "guest");
 ```
 
 Hierarchies of roles can be created by assigning parents to roles:
 
 ```javascript
-acl.addRoleParents("baz", ["foo", "bar"]);
+await acl.addRoleParents("baz", ["foo", "bar"]);
 ```
 
 Note that the order in which you call all the functions is irrelevant (you can add parents first and assign permissions to roles later)
 
 ```javascript
-acl.allow("foo", ["blogs", "forums", "news"], ["view", "delete"]);
+await acl.allow("foo", ["blogs", "forums", "news"], ["view", "delete"]);
 ```
 
 Use the wildcard to give all permissions:
 
 ```javascript
-acl.allow("admin", ["blogs", "forums"], "*");
+await acl.allow("admin", ["blogs", "forums"], "*");
 ```
 
 Sometimes is necessary to set permissions on many different roles and resources. This would
 lead to unnecessary nested callbacks for handling errors. Instead use the following:
 
 ```javascript
-acl.allow([
+await acl.allow([
   {
     roles: ["guest", "member"],
     allows: [
@@ -178,17 +173,16 @@ acl.allow([
 You can check if a user has permissions to access a given resource with _isAllowed_:
 
 ```javascript
-acl.isAllowed("joed", "blogs", "view", function (err, res) {
-  if (res) {
-    console.log("User joed is allowed to view blogs");
-  }
-});
+const res = await acl.isAllowed("joed", "blogs", "view");
+if (res) {
+  console.log("User joed is allowed to view blogs");
+}
 ```
 
 Of course arrays are also accepted in this function:
 
 ```javascript
-acl.isAllowed("jsmith", "blogs", ["edit", "view", "delete"]);
+await acl.isAllowed("jsmith", "blogs", ["edit", "view", "delete"]);
 ```
 
 Note that all permissions must be fulfilled in order to get _true_.
@@ -196,12 +190,8 @@ Note that all permissions must be fulfilled in order to get _true_.
 Sometimes is necessary to know what permissions a given user has over certain resources:
 
 ```javascript
-acl.allowedPermissions("james", ["blogs", "forums"], function (
-  err,
-  permissions
-) {
-  console.log(permissions);
-});
+const permissions = await acl.allowedPermissions("james", ["blogs", "forums"]);
+console.log(permissions);
 ```
 
 It will return an array of resource:[permissions] like this:
@@ -225,7 +215,7 @@ app.put('/blogs/:id', acl.middleware(), function(req, res, next){…}
 The middleware will protect the resource named by _req.url_, pick the user from _req.session.userId_ and check the permission for _req.method_, so the above would be equivalent to something like this:
 
 ```javascript
-acl.isAllowed(req.session.userId, "/blogs/12345", "put");
+await acl.isAllowed(req.session.userId, "/blogs/12345", "put");
 ```
 
 The middleware accepts 3 optional arguments, that are useful in some situations. For example, sometimes we
@@ -247,85 +237,80 @@ app.put('/blogs/:id/comments/:commentId', acl.middleware(3, 'joed', 'post'), fun
 
 <a name="addUserRoles"/>
 
-### addUserRoles( userId, roles, function(err) )
+### addUserRoles( userId, roles )
 
 Adds roles to a given user id.
 
 **Arguments**
 
 ```javascript
-    userId   {String|Number} User id.
+    userId   {String} User id.
     roles    {String|Array} Role(s) to add to the user id.
-    callback {Function} Callback called when finished.
 ```
 
 ---
 
 <a name="removeUserRoles"/>
 
-### removeUserRoles( userId, roles, function(err) )
+### removeUserRoles( userId, roles )
 
 Remove roles from a given user.
 
 **Arguments**
 
 ```javascript
-    userId   {String|Number} User id.
+    userId   {String} User id.
     roles    {String|Array} Role(s) to remove to the user id.
-    callback {Function} Callback called when finished.
 ```
 
 ---
 
 <a name="userRoles" />
 
-### userRoles( userId, function(err, roles) )
+### userRoles( userId )
 
 Return all the roles from a given user.
 
 **Arguments**
 
 ```javascript
-    userId   {String|Number} User id.
-    callback {Function} Callback called when finished.
+    userId   {String} User id.
 ```
 
 ---
 
 <a name="roleUsers" />
 
-### roleUsers( rolename, function(err, users) )
+### roleUsers( roleName )
 
 Return all users who has a given role.
 
 **Arguments**
 
 ```javascript
-    rolename   {String|Number} User id.
-    callback {Function} Callback called when finished.
+    roleName   {String} User id.
 ```
 
 ---
 
 <a name="hasRole" />
 
-### hasRole( userId, rolename, function(err, hasRole) )
+### hasRole( userId, rolroleNameename )
 
 Return boolean whether user has the role
 
 **Arguments**
 
 ```javascript
-    userId   {String|Number} User id.
-    rolename {String|Number} role name.
-    callback {Function} Callback called when finished.
+    userId   {String} User id.
+    roleName {String} role name.
 ```
 
 ---
 
 <a name="addRoleParents" />
 
-### addRoleParents( role, parents, function(err) )
+### addRoleParents( role, parents )
 
 Adds a parent or parent list to role.
 
@@ -334,14 +319,13 @@ Adds a parent or parent list to role.
 ```javascript
     role     {String} Child role.
     parents  {String|Array} Parent role(s) to be added.
-    callback {Function} Callback called when finished.
 ```
 
 ---
 
 <a name="removeRoleParents" />
 
-### removeRoleParents( role, parents, function(err) )
+### removeRoleParents( role, parents )
 
 Removes a parent or parent list from role.
 
@@ -352,14 +336,13 @@ If `parents` is not specified, removes all parents.
 ```javascript
     role     {String} Child role.
     parents  {String|Array} Parent role(s) to be removed [optional].
-    callback {Function} Callback called when finished [optional].
 ```
 
 ---
 
 <a name="removeRole" />
 
-### removeRole( role, function(err) )
+### removeRole( role )
 
 Removes a role from the system.
 
@@ -367,14 +350,13 @@ Removes a role from the system.
 
 ```javascript
     role     {String} Role to be removed
-    callback {Function} Callback called when finished.
 ```
 
 ---
 
 <a name="removeResource" />
 
-### removeResource( resource, function(err) )
+### removeResource( resource )
 
 Removes a resource from the system
 
@@ -382,14 +364,13 @@ Removes a resource from the system
 
 ```javascript
     resource {String} Resource to be removed
-    callback {Function} Callback called when finished.
 ```
 
 ---
 
 <a name="allow" />
 
-### allow( roles, resources, permissions, function(err) )
+### allow( roles, resources, permissions )
 
 Adds the given permissions to the given roles over the given resources.
 
@@ -399,25 +380,22 @@ Adds the given permissions to the given roles over the given resources.
     roles       {String|Array} role(s) to add permissions to.
     resources   {String|Array} resource(s) to add permisisons to.
     permissions {String|Array} permission(s) to add to the roles over the resources.
-    callback    {Function} Callback called when finished.
 ```
 
-### allow( permissionsArray, function(err) )
+### allow( permissionsArray )
 
 **Arguments**
 
 ```javascript
     permissionsArray {Array} Array with objects expressing what permissions to give.
        [{roles:{String|Array}, allows:[{resources:{String|Array}, permissions:{String|Array}]]
-
-    callback         {Function} Callback called when finished.
 ```
 
 ---
 
 <a name="removeAllow" />
 
-### removeAllow( role, resources, permissions, function(err) )
+### removeAllow( role, resources )
 
 Remove permissions from the given roles owned by the given role.
 
@@ -429,14 +407,13 @@ Note: we loose atomicity when removing empty role_resources.
     role        {String}
     resources   {String|Array}
     permissions {String|Array}
-    callback    {Function}
 ```
 
 ---
 
 <a name="allowedPermissions" />
 
-### allowedPermissions( userId, resources, function(err, obj) )
+### allowedPermissions( userId, resources )
 
 Returns all the allowable permissions a given user have to
 access the given resources.
@@ -447,16 +424,15 @@ resource name to a list of permissions for that resource.
 **Arguments**
 
 ```javascript
-    userId    {String|Number} User id.
+    userId    {String} User id.
     resources {String|Array} resource(s) to ask permissions for.
-    callback  {Function} Callback called when finished.
 ```
 
 ---
 
 <a name="isAllowed" />
 
-### isAllowed( userId, resource, permissions, function(err, allowed) )
+### isAllowed( userId, resource, permissions )
 
 Checks if the given user is allowed to access the resource for the given
 permissions (note: it must fulfill all the permissions).
@@ -464,17 +440,16 @@ permissions (note: it must fulfill all the permissions).
 **Arguments**
 
 ```javascript
-    userId      {String|Number} User id.
+    userId      {String} User id.
     resource    {String} resource to ask permissions for.
     permissions {String|Array} asked permissions.
-    callback    {Function} Callback called with the result.
 ```
 
 ---
 
 <a name="areAnyRolesAllowed" />
 
-### areAnyRolesAllowed( roles, resource, permissions, function(err, allowed) )
+### areAnyRolesAllowed( roles, resource, permissions )
 
 Returns true if any of the given roles have the right permissions.
 
@@ -484,14 +459,13 @@ Returns true if any of the given roles have the right permissions.
     roles       {String|Array} Role(s) to check the permissions for.
     resource    {String} resource to ask permissions for.
     permissions {String|Array} asked permissions.
-    callback    {Function} Callback called with the result.
 ```
 
 ---
 
 <a name="whatResources" />
 
-### whatResources(role, function(err, {resourceName: [permissions]})
+### whatResources(role) : {resourceName: [permissions]}
 
 Returns what resources a given role has permissions over.
 
@@ -499,10 +473,9 @@ Returns what resources a given role has permissions over.
 
 ```javascript
     role        {String|Array} Roles
-    callback    {Function} Callback called with the result.
 ```
 
-whatResources(role, permissions, function(err, resources) )
+whatResources(role, permissions) : resources
 
 Returns what resources a role has the given permissions over.
 
@@ -511,7 +484,6 @@ Returns what resources a role has the given permissions over.
 ```javascript
     role        {String|Array} Roles
     permissions {String|Array} Permissions
-    callback    {Function} Callback called with the result.
 ```
 
 ---
@@ -528,7 +500,7 @@ To create a custom getter for userId, pass a function(req, res) which returns th
 
 ```javascript
     numPathComponents {Number} number of components in the url to be considered part of the resource name.
-    userId            {String|Number|Function} the user id for the acl system (defaults to req.session.userId)
+    userId            {String} the user id for the acl system (defaults to req.session.userId)
     permissions       {String|Array} the permission(s) to check for (defaults to req.method.toLowerCase())
 ```
 
@@ -552,7 +524,9 @@ Creates a MongoDB backend instance.
 Example:
 
 ```javascript
-const client = await require("mongodb").connect("mongodb://127.0.0.1:27017/acl_test");
+const client = await require("mongodb").connect(
+  "mongodb://127.0.0.1:27017/acl_test"
+);
 const ACL = require("acl2");
 const acl = new ACL(new ACL.mongodbBackend({ client, useSingle: true }));
 ```
@@ -571,9 +545,11 @@ Creates a Redis backend instance.
 Example:
 
 ```javascript
-var client = require("redis").createClient(6379, "127.0.0.1", { no_ready_check: true });
+const client = await require("redis").createClient(6379, "127.0.0.1").connect();
 const ACL = require("acl2");
-const acl = new ACL(new acl.redisBackend({ client, prefix: "my_acl_prefix_" }));
+const acl = new ACL(
+  new acl.redisBackend({ redis: client, prefix: "my_acl_prefix_" })
+);
 ```
 
 ## Tests

@@ -12,16 +12,14 @@ module.exports = async function createBackend(backendType) {
             password: null,
         };
 
-        const redis = require("redis").createClient(options.port, options.host, {
-            no_ready_check: true,
-        });
+        const redis = await require("redis").createClient(options.port, options.host).connect();
 
         return new Acl.redisBackend({ redis });
     }
 
     if (backendType === "mongo") {
         const { MongoClient } = await require("mongodb");
-        const client = await MongoClient.connect("mongodb://localhost:27017/acl_test?useUnifiedTopology=true");
+        const client = await MongoClient.connect("mongodb://localhost:27017/acl_test");
 
         await client.db("acl_test").dropDatabase();
         return new Acl.mongodbBackend({ client, prefix: "acl_" });
@@ -29,11 +27,11 @@ module.exports = async function createBackend(backendType) {
 
     if (backendType === "mongo_single") {
         const { MongoClient } = await require("mongodb");
-        const client = await MongoClient.connect("mongodb://localhost:27017/acl_test?useUnifiedTopology=true");
+        const client = await MongoClient.connect("mongodb://localhost:27017/acl_test");
 
         await client.db("acl_test").dropDatabase();
         return new Acl.mongodbBackend({ client, prefix: "acl_", useSingle: true });
     }
 
-    throw new Error("Please assign ACL_BACKEND env var to one of: memory, redis, mongo, mongo_single");
+    throw new Error("Please assign ACL_BACKEND env const to one of: memory, redis, mongo, mongo_single");
 };
