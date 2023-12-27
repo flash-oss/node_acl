@@ -16,41 +16,43 @@ A Redis, MongoDB and In-Memory based backends are provided built-in in the modul
 
 ### Breaking changes comparing to the original `acl`
 
-* The backend constructors take options object instead of multiple argument.
+- The backend constructors take options object instead of multiple argument.
 
 Original `acl`:
+
 ```js
-new ACL.mongodbBackend(db, prefix, useSingle, useRawCollectionNames)
-new ACL.redisBackend(redis, prefix)
+new ACL.mongodbBackend(db, prefix, useSingle, useRawCollectionNames);
+new ACL.redisBackend(redis, prefix);
 ```
 
 New `acl2`:
+
 ```js
 new ACL.mongodbBackend({ client, db, prefix = "acl_", useSingle, useRawCollectionNames })
 new ACL.redisBackend({ redis, prefix = "acl_" })
 ```
 
-* The new default `"acl_"` prefix for both Redis and MongoDB.
+- The new default `"acl_"` prefix for both Redis and MongoDB.
 
-* The `mongodb` dependency upgraded from v2 to the latest v3 - v4.
+- The `mongodb` dependency upgraded from v2 to the latest v3 - v4.
 
-* Both `mongodb` and `redis` dependencies moved to `devDependencies`. You have to install them to your project separately.
+- Both `mongodb` and `redis` dependencies moved to `devDependencies`. You have to install them to your project separately.
 
-* The minimal supported nodejs version was `0.10`, but became the current LTS `12`.
+- The minimal supported nodejs version was `0.10`, but became the current LTS `12`.
 
-* The first published version of `acl2` is `1.0` to be more SemVer compliant.
+- The first published version of `acl2` is `1.0` to be more SemVer compliant.
 
 ### Other notable changes comparing to the original `acl`
 
-* ES6
-* ESLint
-* Prettier
-* Internally use more promises, fewer callbacks for better stack traces
-* Upgraded all possible dependencies
-* Made unit test debuggable, split them by backend type
-* MongoDB backend accepts either `client` or `db` [objects](https://github.com/mongodb/node-mongodb-native/blob/3.0/CHANGES_3.0.0.md)
-* Removed all possible warnings
-* Run CI tests using multiple MongoDB versions.
+- ES6
+- ESLint
+- Prettier
+- Internally use more promises, fewer callbacks for better stack traces
+- Upgraded all possible dependencies
+- Made unit test debuggable, split them by backend type
+- MongoDB backend accepts either `client` or `db` [objects](https://github.com/mongodb/node-mongodb-native/blob/3.0/CHANGES_3.0.0.md)
+- Removed all possible warnings
+- Run CI tests using multiple MongoDB versions.
 
 ## Features
 
@@ -196,12 +198,13 @@ Note that all permissions must be fulfilled in order to get _true_.
 Sometimes is necessary to know what permissions a given user has over certain resources:
 
 ```javascript
-acl.allowedPermissions("james", ["blogs", "forums"], function (
-  err,
-  permissions
-) {
-  console.log(permissions);
-});
+acl.allowedPermissions(
+  "james",
+  ["blogs", "forums"],
+  function (err, permissions) {
+    console.log(permissions);
+  }
+);
 ```
 
 It will return an array of resource:[permissions] like this:
@@ -552,7 +555,9 @@ Creates a MongoDB backend instance.
 Example:
 
 ```javascript
-const client = await require("mongodb").connect("mongodb://127.0.0.1:27017/acl_test");
+const client = await require("mongodb").connect(
+  "mongodb://127.0.0.1:27017/acl_test"
+);
 const ACL = require("acl2");
 const acl = new ACL(new ACL.mongodbBackend({ client, useSingle: true }));
 ```
@@ -571,7 +576,9 @@ Creates a Redis backend instance.
 Example:
 
 ```javascript
-var client = require("redis").createClient(6379, "127.0.0.1", { no_ready_check: true });
+var client = require("redis").createClient(6379, "127.0.0.1", {
+  no_ready_check: true,
+});
 const ACL = require("acl2");
 const acl = new ACL(new acl.redisBackend({ client, prefix: "my_acl_prefix_" }));
 ```

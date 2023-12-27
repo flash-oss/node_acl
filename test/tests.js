@@ -1120,12 +1120,15 @@ describe("acl", () => {
         it("Add roles/resources/permissions", function (done) {
             var acl = new Acl(backend);
 
-            acl.allow(["role1", "role2", "role3"], ["res1", "res2", "res3"], ["perm1", "perm2", "perm3"], function (
-                err
-            ) {
-                assert.ifError(err);
-                done();
-            });
+            acl.allow(
+                ["role1", "role2", "role3"],
+                ["res1", "res2", "res3"],
+                ["perm1", "perm2", "perm3"],
+                function (err) {
+                    assert.ifError(err);
+                    done();
+                }
+            );
         });
 
         it("Add user roles and parent roles", function (done) {
