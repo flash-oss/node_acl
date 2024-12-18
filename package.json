@@ -50,5 +50,6 @@
       "mocha": true
     },
     "extends": "eslint:recommended"
-  }
+  },
+  "type": "./types/index.d.ts"
 }
