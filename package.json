@@ -16,6 +16,7 @@
     "node": ">= 16"
   },
   "main": "./index.js",
+  "types": "./types/index.d.ts",
   "dependencies": {
     "lodash": "^4.17.3"
   },
@@ -50,6 +51,5 @@
       "mocha": true
     },
     "extends": "eslint:recommended"
-  },
-  "type": "./types/index.d.ts"
+  }
 }
