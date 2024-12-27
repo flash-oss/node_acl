@@ -39,7 +39,8 @@
   },
   "files": [
     "index.js",
-    "lib"
+    "lib",
+    "types"
   ],
   "eslintConfig": {
     "parserOptions": {
