@@ -1,6 +1,6 @@
 {
   "name": "acl2",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "An Access Control List module based on memory, Redis, or MongoDB with Express middleware support",
   "keywords": [
     "middleware",
