@@ -2,6 +2,16 @@
 
 This module provides a minimalistic ACL implementation inspired by Zend_ACL.
 
+## ⚠️ This project is looking for new maintainers ⚠️
+
+<span style="color:red">Otherwise, we plan to leave this project unmaintained. Meaning, no bugfixes, no TS fixes, no new releases, no dependency upgrades, nothing.</span>
+
+Please create an issue with a proposal to take over this git repo and the NPM access.
+
+---
+
+## Why this project exists?
+
 When you develop a website or application you will soon notice that sessions are not enough to protect all the
 available resources. Avoiding that malicious users access other users content proves a much more
 complicated task than anticipated. ACL can solve this problem in a flexible and elegant way.
@@ -34,7 +44,7 @@ new ACL.redisBackend({ redis, prefix = "acl_" })
 
 - The new default `"acl_"` prefix for both Redis and MongoDB.
 
-- Maintained and modern code infrastructure.
+- Modern code infrastructure.
 
 ### Other notable changes comparing to the original `acl`
 
