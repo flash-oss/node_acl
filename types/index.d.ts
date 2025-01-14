@@ -9,17 +9,17 @@ declare module "acl2" {
   }
 
   class Acl {
-    constructor(backend: Acl.MongoBackend);
+    constructor(backend: Acl.MongoBackend | Acl.Backend);
 
     allow(rolesPermissions: RolePermission[] | string, resources?: string | string[], permissions?: string | string[]): Promise<void>;
 
-    addUserRoles(userId: string | number, roles: string | string[]): Promise<void>;
+    addUserRoles(userId: string, roles: string | string[]): Promise<void>;
 
-    removeUserRoles(userId: string | number, roles: string | string[]): Promise<void>;
+    removeUserRoles(userId: string, roles: string | string[]): Promise<void>;
 
-    userRoles(userId: string | number): Promise<string[]>;
+    userRoles(userId: string): Promise<string[]>;
 
-    hasRole(userId: string | number, role: string): Promise<boolean>;
+    hasRole(userId: string, role: string): Promise<boolean>;
 
     addRoleParents(role: string, parents: string | string[]): Promise<void>;
 
@@ -27,7 +27,7 @@ declare module "acl2" {
 
     whatResources(roles: string | string[]): Promise<Record<string, string[]>>;
 
-    isAllowed(userId: string | number, resources: string | string[], permissions: string | string[]): Promise<boolean>;
+    isAllowed(userId: string, resources: string | string[], permissions: string | string[]): Promise<boolean>;
 
     areAnyRolesAllowed(roles: string | string[], resources: string | string[], permissions: string | string[]): Promise<boolean>;
 
@@ -36,7 +36,7 @@ declare module "acl2" {
 
     middleware(
       numPathComponents?: number,
-      userId?: (req: any) => string | number,
+      userId?: (req: any) => string,
       actions?: string | string[]
     ): (req: any, res: any, next: (err?: any) => void) => void;
 
@@ -50,13 +50,13 @@ declare module "acl2" {
     }
 
     interface Backend {
-      new (db: Db, prefix: string): Backend;
+      new (): Backend;
     }
 
     function mongodbBackend(db: Db, prefix: string): void;
 
     // Memory Backend
-    function memoryBackend(): Backend;
+    function memoryBackend(): void;
 
     // Redis Backend
     function redisBackend(client: any, prefix: string): Backend;
