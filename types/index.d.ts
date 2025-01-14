@@ -9,7 +9,7 @@ declare module "acl2" {
   }
 
   class Acl {
-    constructor(backend: Acl.MongoBackend);
+    constructor(backend: Acl.MongoBackend | Acl.Backend);
 
     allow(rolesPermissions: RolePermission[] | string, resources?: string | string[], permissions?: string | string[]): Promise<void>;
 
@@ -50,13 +50,13 @@ declare module "acl2" {
     }
 
     interface Backend {
-      new (db: Db, prefix: string): Backend;
+      new (): Backend;
     }
 
     function mongodbBackend(db: Db, prefix: string): void;
 
     // Memory Backend
-    function memoryBackend(): Backend;
+    function memoryBackend(): void;
 
     // Redis Backend
     function redisBackend(client: any, prefix: string): Backend;
